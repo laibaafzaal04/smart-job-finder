@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Job Finder - Find Your Dream Job</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/style.css">
+
+</head>
+
+<body class="landing-body">
+
+<!-- Enhanced Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm py-3 sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-3" href="#">Smart<span style="color: var(--primary-dark);">Job</span>Finder</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#home">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#features">Features</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#how-it-works">How It Works</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#testimonials">Testimonials</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#contact">Contact</a>
+                </li>
+
+            </ul>
+            <div class="d-flex ms-3" id="navAuthButtons">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section d-flex align-items-center" id="home">
+    <div class="container text-center text-white">
+        <h1 class="display-4 fw-bold hero-title">
+            Find Your Dream Job<br>With Confidence
+        </h1>
+
+        <p class="lead mb-4 hero-subtitle">
+            Connect with top employers and discover opportunities that match your skills and aspirations.
+        </p>
+
+        <!-- SEARCH BAR -->
+        <div class="row justify-content-center mt-5">
+            <div class="col-md-8">
+                <div class="search-bar bg-white rounded-pill p-2 shadow-lg">
+                    <form id="indexSearchForm" action="jobs.html" method="get">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-0" id="indexJobSearch" name="search" placeholder="Job title, company, or keyword">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="mt-3 text-white-50">
+                    <span>Popular Searches: </span>
+                    <a href="jobs.html?search=Software+Engineer" class="text-white mx-2">Software Engineer</a>
+                    <a href="jobs.html?search=Marketing+Manager" class="text-white mx-2">Marketing Manager</a>
+                    <a href="jobs.html?search=Data+Analyst" class="text-white mx-2">Data Analyst</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="row mt-5 pt-5">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="text-white">
+                    <h2 class="fw-bold mb-0">10,000+</h2>
+                    <p class="mb-0">Active Jobs</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="text-white">
+                    <h2 class="fw-bold mb-0">5,000+</h2>
+                    <p class="mb-0">Companies</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="text-white">
+                    <h2 class="fw-bold mb-0">50,000+</h2>
+                    <p class="mb-0">Job Seekers</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="text-white">
+                    <h2 class="fw-bold mb-0">95%</h2>
+                    <p class="mb-0">Success Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light" id="features">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-md-8 mx-auto text-center">
+                <h2 class="fw-bold display-5">Why Choose Smart Job Finder?</h2>
+                <p class="text-muted lead">We provide the tools and resources you need to land your perfect job</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-box card border-0">
+                    <div class="feature-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <h4>Curated Job Matches</h4>
+                    <p class="text-muted">Our AI-powered algorithm matches you with jobs that fit your skills, experience, and preferences.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box card border-0">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h4>CV Optimization</h4>
+                    <p class="text-muted">Get professional feedback on your CV and tips to make it stand out to employers.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box card border-0">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Career Insights</h4>
+                    <p class="text-muted">Access salary data, company reviews, and industry trends to make informed decisions.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box card border-0">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h4>Real-Time Alerts</h4>
+                    <p class="text-muted">Get instant notifications when new jobs matching your profile are posted.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box card border-0">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Secure & Private</h4>
+                    <p class="text-muted">Your data is encrypted and protected. We never share your information without permission.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box card border-0">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4>Expert Support</h4>
+                    <p class="text-muted">Our career advisors are here to help you every step of the way.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5" id="how-it-works">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-md-8 mx-auto text-center">
+                <h2 class="fw-bold display-5">How It Works</h2>
+                <p class="text-muted lead">Get your dream job in just a few simple steps</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-box">
+                    <div class="step-number">1</div>
+                    <h4>Create Your Profile</h4>
+                    <p class="text-muted">Sign up and build your professional profile with your skills, experience, and career goals.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-box">
+                    <div class="step-number">2</div>
+                    <h4>Upload Your CV</h4>
+                    <p class="text-muted">Upload your CV to get personalized job recommendations and apply with one click.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-box">
+                    <div class="step-number">3</div>
+                    <h4>Apply & Get Hired</h4>
+                    <p class="text-muted">Browse curated job listings, apply directly, and track your applications in one place.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Jobs Preview -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-md-8 mx-auto text-center">
+                <h2 class="fw-bold display-5">Featured Jobs</h2>
+                <p class="text-muted lead">Discover opportunities from top companies</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="job-card" data-job-id="job1" data-title="Frontend Developer" data-company="Google" data-location="California">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-success">Full-Time</span>
+                        <span class="text-muted"><i class="far fa-clock me-1"></i> 2 days ago</span>
+                    </div>
+                    <h4>Frontend Developer</h4>
+                    <p class="mb-1"><strong>Google</strong></p>
+                    <p class="text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> California, USA</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-primary">$90,000 - $120,000</span>
+                        <a href="job-details.html?id=job1" class="btn btn-primary btn-sm rounded-pill">View Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="job-card" data-job-id="job2" data-title="UX/UI Designer" data-company="Figma" data-location="Remote">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-primary">Remote</span>
+                        <span class="text-muted"><i class="far fa-clock me-1"></i> 1 week ago</span>
+                    </div>
+                    <h4>UX/UI Designer</h4>
+                    <p class="mb-1"><strong>Figma</strong></p>
+                    <p class="text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> Remote</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-primary">$85,000 - $110,000</span>
+                        <a href="job-details.html?id=job2" class="btn btn-primary btn-sm rounded-pill">View Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="job-card" data-job-id="job3" data-title="Data Scientist" data-company="Netflix" data-location="California">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-success">Full-Time</span>
+                        <span class="text-muted"><i class="far fa-clock me-1"></i> 3 days ago</span>
+                    </div>
+                    <h4>Data Scientist</h4>
+                    <p class="mb-1"><strong>Netflix</strong></p>
+                    <p class="text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> California, USA</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-primary">$110,000 - $140,000</span>
+                        <a href="job-details.html?id=job3" class="btn btn-primary btn-sm rounded-pill">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            <a href="jobs.html" class="btn btn-primary rounded-pill px-5 py-3">
+                <i class="fas fa-briefcase me-2"></i>View All Jobs
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5" id="testimonials">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-md-8 mx-auto text-center">
+                <h2 class="fw-bold display-5">Success Stories</h2>
+                <p class="text-muted lead">Hear from people who found their dream jobs through our platform</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "Smart Job Finder helped me transition from retail to a tech career. The personalized job matches were spot on!"
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" style="width: 50px; height: 50px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="testimonial-author">Sarah Johnson</div>
+                            <div class="text-muted small">Software Developer at Microsoft</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "I landed my dream job in just 3 weeks! The application tracking feature kept me organized throughout the process."
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" style="width: 50px; height: 50px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="testimonial-author">Michael Chen</div>
+                            <div class="text-muted small">Marketing Manager at Amazon</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "The CV optimization tips were invaluable. I received 3 job offers within a month of using Smart Job Finder!"
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white" style="width: 50px; height: 50px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="testimonial-author">Emily Rodriguez</div>
+                            <div class="text-muted small">Product Designer at Adobe</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="fw-bold display-6">Ready to find your dream job?</h3>
+                <p class="mb-0 lead">Join thousands of professionals who have accelerated their careers with Smart Job Finder.</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="register.html" class="btn btn-light rounded-pill px-4 py-3">
+                    <i class="fas fa-rocket me-2"></i>Get Started Today
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer id="contact">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <h4 class="fw-bold mb-3">Smart Job Finder</h4>
+                <p>Connecting talented professionals with their dream jobs since 2025. Our mission is to make job searching efficient, effective, and enjoyable.</p>
+                <div class="d-flex mt-4">
+                    <a href="#" class="text-white me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white me-3"><i class="fab fa-linkedin-in fa-lg"></i></a>
+                    <a href="#" class="text-white"><i class="fab fa-instagram fa-lg"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <h5 class="fw-bold mb-3">For Job Seekers</h5>
+                <ul class="list-unstyled footer-links">
+                    <li class="mb-2"><a href="jobs.html">Browse Jobs</a></li>
+                    <li class="mb-2"><a href="#">Career Advice</a></li>
+                    <li class="mb-2"><a href="upload-cv.html">CV Builder</a></li>
+                    <li class="mb-2"><a href="#">Salary Calculator</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <h5 class="fw-bold mb-3">For Employers</h5>
+                <ul class="list-unstyled footer-links">
+                    <li class="mb-2"><a href="#">Post a Job</a></li>
+                    <li class="mb-2"><a href="#">Browse Candidates</a></li>
+                    <li class="mb-2"><a href="#">Pricing</a></li>
+                    <li class="mb-2"><a href="#">Resources</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <h5 class="fw-bold mb-3">Company</h5>
+                <ul class="list-unstyled footer-links">
+                    <li class="mb-2"><a href="#">About Us</a></li>
+                    <li class="mb-2"><a href="#">Careers</a></li>
+                    <li class="mb-2"><a href="#">Contact</a></li>
+                    <li class="mb-2"><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2">
+                <h5 class="fw-bold mb-3">Contact</h5>
+                <ul class="list-unstyled footer-links">
+                    <li class="mb-2"><i class="fas fa-envelope me-2"></i> info@smartjobfinder.com</li>
+                    <li class="mb-2"><i class="fas fa-phone me-2"></i> +92 312456789</li>
+                    <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> Lahore, Pakistan</li>
+                </ul>
+            </div>
+        </div>
+        <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="mb-0">&copy; 2025 Smart Job Finder. All Rights Reserved.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="#" class="text-white me-3">Terms of Service</a>
+                <a href="#" class="text-white">Privacy Policy</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/main.js"></script>
+<script>
+// Dark Mode Toggle - Add to every page
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    
+    const icon = document.getElementById('darkModeIcon');
+    if (icon) {
+        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    
+    // Update navbar for dark mode
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+        if (isDark) {
+            navbar.classList.remove('navbar-light', 'bg-white');
+            navbar.classList.add('navbar-dark', 'bg-dark');
+        } else {
+            navbar.classList.remove('navbar-dark', 'bg-dark');
+            navbar.classList.add('navbar-light', 'bg-white');
+        }
+    }
+}
+
+// Load dark mode preference on page load
+window.addEventListener('load', function() {
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    if (darkMode) {
+        document.body.classList.add('dark-mode');
+        const icon = document.getElementById('darkModeIcon');
+        if (icon) {
+            icon.className = 'fas fa-sun';
+        }
+        
+        // Update navbar
+        const navbar = document.querySelector('.navbar');
+        if (navbar) {
+            navbar.classList.remove('navbar-light', 'bg-white');
+            navbar.classList.add('navbar-dark', 'bg-dark');
+        }
+    }
+});
+</script>
+</body>
+</html>

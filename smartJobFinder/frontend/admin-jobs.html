@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Jobs – Admin</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Garamond&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold">SmartJobFinder</a>
+            <div>
+                <span class="me-3 text-muted" id="adminWelcome">Welcome, Admin</span>
+                <a href="admin-dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+                <a href="add-job.html" class="btn btn-outline-primary rounded-pill me-2">Add Job</a>
+                <a href="admin-users.html" class="btn btn-outline-primary rounded-pill me-2">Manage Applicants</a>
+                <a href="index.html" class="btn btn-primary rounded-pill" onclick="adminLogout()">Logout</a>
+        
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+
+        <h2 class="fw-bold mb-4" style="font-family:'Playfair Display';">Manage Jobs</h2>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <span class="text-muted" id="jobsCount">Loading jobs...</span>
+            <a href="add-job.html" class="btn btn-primary rounded-pill">+ Add New Job</a>
+        </div>
+
+        <table class="table table-hover shadow-sm rounded-4 overflow-hidden">
+            <thead class="table-light">
+                <tr>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Location</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Posted Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody id="jobsTableBody">
+                <!-- Jobs will be loaded dynamically -->
+            </tbody>
+        </table>
+
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://localhost:8000";
+
+        // Admin authentication check
+        window.addEventListener('load', async function () {
+            const isAdmin = localStorage.getItem('isAdmin');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+            if (!isLoggedIn || !isAdmin) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Display admin name if available
+            const adminName = localStorage.getItem('adminName');
+            if (adminName) {
+                document.getElementById('adminWelcome').textContent = `Welcome, ${adminName}`;
+            }
+
+            // Load and display jobs
+            await loadJobs();
+        });
+
+        // Add this to the loadJobs function
+        async function loadJobs() {
+            const accessToken = localStorage.getItem('access_token');
+
+            if (!accessToken) {
+                alert('No authentication token found');
+                return;
+            }
+
+            try {
+                // Show loading state
+                document.getElementById('jobsCount').textContent = 'Loading your jobs...';
+
+                console.log('Fetching jobs for admin...');
+
+                // Fetch jobs for current admin from backend
+                const response = await fetch(`${API_BASE_URL}/api/jobs/admin/my-jobs`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                console.log('Response status:', response.status);
+
+                if (response.ok) {
+                    const jobs = await response.json();
+                    console.log('Jobs received:', jobs);
+
+                    if (jobs.length > 0) {
+                        console.log('First job ID:', jobs[0].id, 'or', jobs[0]._id);
+                    }
+
+                    displayJobs(jobs);
+
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error loading jobs:', errorData);
+
+                    // Fallback to localStorage if API fails
+                    const localJobs = JSON.parse(localStorage.getItem('adminJobs') || '[]');
+                    const adminEmail = localStorage.getItem('adminEmail');
+
+                    console.log('Local jobs:', localJobs);
+
+                    // Filter jobs by current admin email
+                    const adminJobs = localJobs.filter(job => job.posted_by === adminEmail);
+
+                    if (adminJobs.length > 0) {
+                        console.log('Using local storage data');
+                        displayJobs(adminJobs);
+                        alert('Using local storage data. Backend connection failed.');
+                    } else {
+                        document.getElementById('jobsTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            Error loading jobs. Please try again later.
+                        </td>
+                    </tr>
+                `;
+                        document.getElementById('jobsCount').textContent = 'Error loading jobs';
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                document.getElementById('jobsCount').textContent = 'Error loading jobs';
+            }
+        }
+
+        // Fix the displayJobs function in admin-jobs.html
+        function displayJobs(jobs) {
+            const tableBody = document.getElementById('jobsTableBody');
+
+            if (jobs.length === 0) {
+                tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4 text-muted">
+                    No jobs found. <a href="add-job.html">Add your first job</a>
+                </td>
+            </tr>
+        `;
+                document.getElementById('jobsCount').textContent = 'No jobs found';
+                return;
+            }
+
+            // Display jobs count
+            document.getElementById('jobsCount').textContent = `${jobs.length} job(s) found`;
+
+            // Debug: Log first job to see its structure
+            console.log('Sample job structure:', jobs[0]);
+
+            // Populate table with jobs
+            tableBody.innerHTML = jobs.map(job => {
+                // Get the job ID - handle both _id and id fields
+                const jobId = job.id || job._id;
+
+                if (!jobId) {
+                    console.error('Job has no ID:', job);
+                    return '';
+                }
+
+                return `
+        <tr>
+            <td>${job.title || 'No title'}</td>
+            <td>${job.company || 'No company'}</td>
+            <td>${job.location || 'No location'}</td>
+            <td><span class="badge ${getJobTypeBadgeClass(job.type)}">${job.type || 'N/A'}</span></td>
+            <td><span class="badge ${getStatusBadgeClass(job.status)}">${job.status || 'inactive'}</span></td>
+            <td>${formatDate(job.posted_date || job.created_at)}</td>
+            <td>
+                <a href="edit-job.html?id=${encodeURIComponent(jobId)}" class="btn btn-sm btn-primary rounded-pill me-2">Edit</a>
+                <button class="btn btn-sm btn-danger rounded-pill" onclick="deleteJob('${jobId}', '${job.title || 'Untitled Job'}')">Delete</button>
+            </td>
+        </tr>
+    `}).join('');
+        }
+
+        function getJobTypeBadgeClass(type) {
+            const classes = {
+                'Full-Time': 'bg-success',
+                'Part-Time': 'bg-info',
+                'Internship': 'bg-warning',
+                'Contract': 'bg-secondary',
+                'Remote': 'bg-primary'
+            };
+            return classes[type] || 'bg-secondary';
+        }
+
+        function getStatusBadgeClass(status) {
+            const classes = {
+                'active': 'bg-success',
+                'inactive': 'bg-secondary',
+                'pending': 'bg-warning'
+            };
+            return classes[status] || 'bg-secondary';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString();
+        }
+
+        // Update the deleteJob function to handle errors better
+        async function deleteJob(jobId, jobTitle) {
+            if (!jobId || jobId === 'undefined') {
+                alert('Invalid job ID');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete "${jobTitle}"? This action cannot be undone.`)) {
+                const accessToken = localStorage.getItem('access_token');
+
+                if (!accessToken) {
+                    alert('No authentication token found. Please login again.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                try {
+                    // Show loading state
+                    const deleteBtn = event.target;
+                    const originalText = deleteBtn.textContent;
+                    deleteBtn.textContent = 'Deleting...';
+                    deleteBtn.disabled = true;
+
+                    console.log('Deleting job with ID:', jobId);
+
+                    const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        // Get the response data
+                        const result = await response.json();
+
+                        // Remove from all caches
+                        removeJobFromAllCaches(jobId);
+
+                        // Show success message
+                        alert(result.message || 'Job deleted successfully!');
+
+                        // Reload jobs
+                        await loadJobs();
+
+                    } else {
+                        const errorData = await response.json();
+                        if (response.status === 404) {
+                            // Job not found in backend, remove from cache anyway
+                            removeJobFromAllCaches(jobId);
+                            alert('Job not found in backend. Removed from local cache.');
+                            await loadJobs();
+                        } else {
+                            throw new Error(errorData.detail || `Failed to delete job (Status: ${response.status})`);
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('Delete job error:', error);
+                    alert('Error: ' + error.message);
+                } finally {
+                    // Reset button state
+                    const deleteBtn = event.target;
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.disabled = false;
+                }
+            }
+        }
+
+        function removeJobFromAllCaches(jobId) {
+            // Remove from cached jobs
+            const cachedJobs = JSON.parse(localStorage.getItem('cachedJobs') || '[]');
+            const updatedCachedJobs = cachedJobs.filter(job => job.id !== jobId && job._id !== jobId);
+            localStorage.setItem('cachedJobs', JSON.stringify(updatedCachedJobs));
+
+            // Remove from admin jobs cache
+            const adminJobs = JSON.parse(localStorage.getItem('adminJobs') || '[]');
+            const updatedAdminJobs = adminJobs.filter(job => job.id !== jobId && job._id !== jobId);
+            localStorage.setItem('adminJobs', JSON.stringify(updatedAdminJobs));
+
+            // Remove from saved jobs if exists
+            const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+            const updatedSavedJobs = savedJobs.filter(job => job.id !== jobId && job._id !== jobId);
+            localStorage.setItem('savedJobs', JSON.stringify(updatedSavedJobs));
+
+            console.log('Job removed from all caches:', jobId);
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('isAdmin');
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminName');
+            localStorage.removeItem('adminRole');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('access_token');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,38 @@
+# FastAPI Core
+fastapi==0.115.4
+uvicorn[standard]==0.34.0
+python-multipart==0.0.18
+
+# Database
+motor==3.3.2
+pymongo==4.6.1
+
+# Authentication & Security
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+bcrypt==4.1.2
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Email Validation
+email-validator==2.1.0.post1
+
+# Pydantic
+pydantic==2.8.2
+pydantic-settings==2.1.0
+
+# Async Utilities
+aiofiles==23.2.1
+
+# Logging
+colorlog==6.8.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.28.1
+
+# CORS (already included with fastapi but for clarity)
+starlette==0.41.3
+email-validator==2.1.0.post1

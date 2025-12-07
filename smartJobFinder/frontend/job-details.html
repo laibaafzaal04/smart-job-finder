@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Details - Smart Job Finder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="index.html">Smart<span style="color: var(--primary-dark);">Job</span>Finder</a>
+            <div id="navAuthButtons"></div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="job-details-card p-5 rounded-4 shadow-lg">
+            <div class="row">
+                <div class="col-md-8">
+                    <h2 class="fw-bold" id="jobTitle">Loading...</h2>
+                    <p class="text-muted" id="jobCompanyLocation">Loading...</p>
+
+                    <div class="d-flex gap-2 mb-4">
+                        <span class="badge bg-success rounded-pill" id="jobType">Loading</span>
+                        <span class="badge bg-primary rounded-pill" id="jobSalary">Loading</span>
+                        <span class="badge bg-info rounded-pill" id="jobExperience">Loading</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4>Job Description</h4>
+                        <p id="jobDescription" class="mb-4">Loading...</p>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4>Requirements</h4>
+                        <ul id="jobRequirements" class="mb-4"></ul>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4>Benefits</h4>
+                        <ul id="jobBenefits"></ul>
+                    </div>
+
+                    <div class="mb-4">
+                        <h4>Skills Required</h4>
+                        <div id="jobSkills">Loading...</div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-4 h-100">
+                        <h5 class="fw-bold mb-3">Ready to Apply?</h5>
+                        <p class="text-muted mb-4">Submit your application for this position.</p>
+                        
+                        <div class="d-grid gap-3">
+                            <a href="#" class="btn btn-primary rounded-pill py-3" id="applyNowBtn">
+                                <i class="fas fa-paper-plane me-2"></i>Apply Now
+                            </a>
+                            <button class="btn btn-outline-primary rounded-pill py-3" id="saveJobBtn">
+                                <i class="fas fa-heart me-2"></i>Save Job
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4 pt-4 border-top">
+                            <h6 class="fw-bold mb-3">Job Overview</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Posted:</span>
+                                <span id="jobPostedDate">Loading...</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Applications:</span>
+                                <span id="jobApplications">Loading...</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Status:</span>
+                                <span class="badge bg-success" id="jobStatus">Loading</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIMILAR JOBS SECTION (NEW!) -->
+        <div class="mt-5">
+            <h3 class="fw-bold mb-4">Similar Jobs You Might Like</h3>
+            <div id="similarJobsContainer">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading similar jobs...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://localhost:8000";
+        let currentJobId = null;
+        let hasApplied = false;
+
+        window.addEventListener('load', async function() {
+            updateNavbar();
+            await loadJobDetails();
+            await checkApplicationStatus(); // NEW!
+            await loadSimilarJobs(); // NEW!
+            initializeButtons();
+        });
+
+        function updateNavbar() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const navAuthButtons = document.getElementById('navAuthButtons');
+            
+            if (isLoggedIn) {
+                navAuthButtons.innerHTML = `
+                    <a href="jobs.html" class="btn btn-outline-primary rounded-pill me-2">Back to Jobs</a>
+                    <a href="dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+                    <a href="profile.html" class="btn btn-outline-primary rounded-pill me-2">Profile</a>
+                    <a href="index.html" class="btn btn-primary rounded-pill" onclick="logout()">Logout</a>
+                `;
+            } else {
+                navAuthButtons.innerHTML = `
+                    <a href="jobs.html" class="btn btn-outline-primary rounded-pill me-2">Back to Jobs</a>
+                    <a href="login.html" class="btn btn-outline-primary rounded-pill me-2">Login</a>
+                    <a href="register.html" class="btn btn-primary rounded-pill">Sign Up</a>
+                `;
+            }
+        }
+
+        async function loadJobDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            currentJobId = urlParams.get('id');
+
+            if (!currentJobId) {
+                alert('Job ID is required');
+                window.location.href = 'jobs.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/jobs/${currentJobId}`);
+                
+                if (response.ok) {
+                    const job = await response.json();
+                    displayJobDetails(job);
+                    localStorage.setItem('currentJob', JSON.stringify(job));
+                } else {
+                    throw new Error('Failed to load job details');
+                }
+            } catch (error) {
+                console.error('Error loading job details:', error);
+                alert('Error loading job details.');
+                window.location.href = 'jobs.html';
+            }
+        }
+
+        function displayJobDetails(job) {
+            const jobId = job.id || job._id;
+            
+            document.getElementById('jobTitle').textContent = job.title || 'Job Title';
+            document.getElementById('jobCompanyLocation').textContent = `${job.company || 'Company'} • ${job.location || 'Location'}`;
+            document.getElementById('jobType').textContent = job.type || 'Full-Time';
+            document.getElementById('jobSalary').textContent = job.salary || 'Salary not specified';
+            document.getElementById('jobExperience').textContent = job.experience_level || job.experience || 'Not specified';
+            document.getElementById('jobDescription').textContent = job.description || 'No description available';
+            
+            const requirementsList = document.getElementById('jobRequirements');
+            requirementsList.innerHTML = '';
+            if (job.requirements) {
+                const requirements = job.requirements.split('\n').filter(req => req.trim());
+                requirements.forEach(req => {
+                    const li = document.createElement('li');
+                    li.textContent = req.replace(/^[•\-*]\s*/, '').trim();
+                    requirementsList.appendChild(li);
+                });
+            }
+            
+            const benefitsList = document.getElementById('jobBenefits');
+            benefitsList.innerHTML = '';
+            if (job.benefits) {
+                const benefits = job.benefits.split('\n').filter(ben => ben.trim());
+                benefits.forEach(ben => {
+                    const li = document.createElement('li');
+                    li.textContent = ben.replace(/^[•\-*]\s*/, '').trim();
+                    benefitsList.appendChild(li);
+                });
+            }
+            
+            const skillsContainer = document.getElementById('jobSkills');
+            skillsContainer.innerHTML = '';
+            if (job.skills && Array.isArray(job.skills)) {
+                job.skills.forEach(skill => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-light text-dark me-2 mb-2';
+                    badge.textContent = skill;
+                    skillsContainer.appendChild(badge);
+                });
+            } else {
+                skillsContainer.textContent = 'No skills specified';
+            }
+            
+            const postedDate = job.posted_date || job.postedDate;
+            document.getElementById('jobPostedDate').textContent = getTimeAgo(postedDate);
+            document.getElementById('jobApplications').textContent = `${job.applications_count || 0}+`;
+            document.getElementById('jobStatus').textContent = job.status || 'Active';
+            
+            const applyBtn = document.getElementById('applyNowBtn');
+            applyBtn.href = `apply-job.html?id=${jobId}`;
+        }
+
+        // NEW! Check if user has already applied
+        async function checkApplicationStatus() {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken || !currentJobId) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/user/application-status/${currentJobId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const status = await response.json();
+                    console.log('Application status:', status);
+
+                    if (status.has_applied) {
+                        hasApplied = true;
+                        const applyBtn = document.getElementById('applyNowBtn');
+                        applyBtn.innerHTML = '<i class="fas fa-check me-2"></i>Already Applied';
+                        applyBtn.classList.remove('btn-primary');
+                        applyBtn.classList.add('btn-success');
+                        applyBtn.href = '#';
+                        applyBtn.onclick = function(e) {
+                            e.preventDefault();
+                            alert(`You applied on ${new Date(status.applied_at).toLocaleDateString()}. Status: ${status.status}`);
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking application status:', error);
+            }
+        }
+
+        // NEW! Load similar jobs
+        async function loadSimilarJobs() {
+            if (!currentJobId) return;
+
+            const container = document.getElementById('similarJobsContainer');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/user/similar-jobs/${currentJobId}?limit=4`);
+
+                if (response.ok) {
+                    const jobs = await response.json();
+                    console.log('Similar jobs:', jobs);
+
+                    if (jobs.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center py-4">
+                                <p class="text-muted">No similar jobs found</p>
+                                <a href="jobs.html" class="btn btn-primary rounded-pill">Browse All Jobs</a>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    container.innerHTML = `
+                        <div class="row g-4">
+                            ${jobs.map(job => createSimilarJobCard(job)).join('')}
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Failed to load similar jobs');
+                }
+            } catch (error) {
+                console.error('Error loading similar jobs:', error);
+                container.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Similar jobs not available. <a href="jobs.html">Browse all jobs</a>
+                    </div>
+                `;
+            }
+        }
+
+        function createSimilarJobCard(job) {
+            const jobId = job.id || job._id;
+            return `
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm p-3 h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-success">${job.type || 'Full-Time'}</span>
+                            <span class="text-muted small">${getTimeAgo(job.posted_date)}</span>
+                        </div>
+                        <h5 class="fw-bold">${job.title}</h5>
+                        <p class="mb-1"><strong>${job.company}</strong></p>
+                        <p class="text-muted mb-2"><i class="fas fa-map-marker-alt me-1"></i> ${job.location}</p>
+                        <p class="fw-bold text-primary mb-3">${job.salary || 'Salary not specified'}</p>
+                        <a href="job-details.html?id=${jobId}" class="btn btn-outline-primary rounded-pill btn-sm">View Details</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getTimeAgo(dateString) {
+            if (!dateString) return 'Recently';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) return '1 day ago';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`;
+            return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? 's' : ''} ago`;
+        }
+
+        function initializeButtons() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            
+            const applyBtn = document.getElementById('applyNowBtn');
+            applyBtn.addEventListener('click', function(e) {
+                if (!isLoggedIn) {
+                    e.preventDefault();
+                    alert('Please log in to apply for this job.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                if (hasApplied) {
+                    e.preventDefault();
+                    return;
+                }
+            });
+            
+            const saveBtn = document.getElementById('saveJobBtn');
+            if (!isLoggedIn) {
+                saveBtn.style.display = 'none';
+            } else {
+                const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+                const isSaved = savedJobs.find(job => job.id === currentJobId);
+                
+                if (isSaved) {
+                    saveBtn.innerHTML = '<i class="fas fa-heart me-2"></i>Saved ✓';
+                    saveBtn.classList.remove('btn-outline-primary');
+                    saveBtn.classList.add('btn-success');
+                }
+                
+                saveBtn.addEventListener('click', function() {
+                    const jobTitle = document.getElementById('jobTitle').textContent;
+                    const jobCompanyLocation = document.getElementById('jobCompanyLocation').textContent;
+                    
+                    if (this.classList.contains('btn-success')) {
+                        this.innerHTML = '<i class="fas fa-heart me-2"></i>Save Job';
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-outline-primary');
+                        unsaveJob(currentJobId);
+                    } else {
+                        this.innerHTML = '<i class="fas fa-heart me-2"></i>Saved ✓';
+                        this.classList.remove('btn-outline-primary');
+                        this.classList.add('btn-success');
+                        saveJob(currentJobId, jobTitle, jobCompanyLocation);
+                    }
+                });
+            }
+        }
+
+        function saveJob(jobId, title, companyLocation) {
+            const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+            const jobData = {
+                id: jobId,
+                title: title,
+                companyLocation: companyLocation,
+                savedAt: new Date().toISOString()
+            };
+            if (!savedJobs.find(job => job.id === jobId)) {
+                savedJobs.push(jobData);
+                localStorage.setItem('savedJobs', JSON.stringify(savedJobs));
+            }
+        }
+
+        function unsaveJob(jobId) {
+            const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+            const updatedJobs = savedJobs.filter(job => job.id !== jobId);
+            localStorage.setItem('savedJobs', JSON.stringify(updatedJobs));
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('access_token');
+            window.location.href = 'index.html';
+        }
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

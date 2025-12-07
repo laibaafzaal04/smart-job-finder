@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Job – Admin</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Garamond&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold">SmartJobFinder</a>
+            <div>
+                <span class="me-3 text-muted" id="adminWelcome">Welcome, Admin</span>
+                <a href="admin-dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+                <a href="admin-jobs.html" class="btn btn-outline-primary rounded-pill me-2">Manage Jobs</a>
+                <a href="admin-users.html" class="btn btn-outline-primary rounded-pill me-2">Manage Applicants</a>
+                <a href="index.html" class="btn btn-primary rounded-pill" onclick="adminLogout()">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="p-5 shadow-lg rounded-4">
+            <h2 class="fw-bold mb-4" style="font-family:'Playfair Display';">Edit Job</h2>
+
+            <form id="editJobForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Job Title</label>
+                            <input type="text" class="form-control rounded-pill" id="jobTitle" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Company</label>
+                            <input type="text" class="form-control rounded-pill" id="jobCompany" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Location</label>
+                            <input type="text" class="form-control rounded-pill" id="jobLocation" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Job Type</label>
+                            <select class="form-select rounded-pill" id="jobType">
+                                <option value="Full-Time">Full-Time</option>
+                                <option value="Part-Time">Part-Time</option>
+                                <option value="Internship">Internship</option>
+                                <option value="Contract">Contract</option>
+                                <option value="Remote">Remote</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Salary Range</label>
+                            <input type="text" class="form-control rounded-pill" id="jobSalary"
+                                placeholder="e.g., $50,000 - $70,000">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Status</label>
+                            <select class="form-select rounded-pill" id="jobStatus">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Job Description</label>
+                    <textarea class="form-control" id="jobDescription" rows="6"
+                        placeholder="Enter detailed job description..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Requirements</label>
+                    <textarea class="form-control" id="jobRequirements" rows="4"
+                        placeholder="Enter job requirements (one per line)..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Benefits</label>
+                    <textarea class="form-control" id="jobBenefits" rows="3"
+                        placeholder="Enter job benefits (one per line)..."></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Skills Required (comma separated)</label>
+                    <input type="text" class="form-control rounded-pill" id="jobSkills"
+                        placeholder="e.g., JavaScript, React, Node.js">
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Update Job</button>
+                    <a href="admin-jobs.html" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    <button type="button" class="btn btn-danger rounded-pill px-4 ms-auto" id="deleteJobBtn">Delete
+                        Job</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://localhost:8000";
+
+        // Admin authentication check
+        window.addEventListener('load', async function () {
+            const isAdmin = localStorage.getItem('isAdmin');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+            if (!isLoggedIn || !isAdmin) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Display admin name if available
+            const adminName = localStorage.getItem('adminName');
+            if (adminName) {
+                document.getElementById('adminWelcome').textContent = `Welcome, ${adminName}`;
+            }
+
+            // Load job data
+            await loadJobData();
+        });
+
+        // Update the loadJobData function
+        async function loadJobData() {
+            // Get job ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const jobId = urlParams.get('id');
+
+            console.log('URL jobId:', jobId);
+
+            if (!jobId || jobId === 'undefined') {
+                alert('No job ID specified in URL');
+                window.location.href = 'admin-jobs.html';
+                return;
+            }
+
+            const accessToken = localStorage.getItem('access_token');
+
+            if (!accessToken) {
+                alert('No authentication token found. Please login again.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                console.log('Fetching job with ID:', jobId);
+
+                // Fetch job data from backend (with ownership check)
+                const response = await fetch(`${API_BASE_URL}/api/jobs/admin/${encodeURIComponent(jobId)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                console.log('Response status:', response.status);
+
+                if (response.ok) {
+                    const job = await response.json();
+                    console.log('Job data received:', job);
+
+                    // Populate form with job data
+                    document.getElementById('jobTitle').value = job.title || '';
+                    document.getElementById('jobCompany').value = job.company || '';
+                    document.getElementById('jobLocation').value = job.location || '';
+                    document.getElementById('jobType').value = job.type || 'Full-Time';
+                    document.getElementById('jobSalary').value = job.salary || '';
+                    document.getElementById('jobStatus').value = job.status || 'active';
+                    document.getElementById('jobDescription').value = job.description || '';
+                    document.getElementById('jobRequirements').value = job.requirements || '';
+                    document.getElementById('jobBenefits').value = job.benefits || '';
+
+                    // Handle skills - could be array or comma-separated string
+                    let skillsValue = '';
+                    if (Array.isArray(job.skills)) {
+                        skillsValue = job.skills.join(', ');
+                    } else if (typeof job.skills === 'string') {
+                        skillsValue = job.skills;
+                    }
+                    document.getElementById('jobSkills').value = skillsValue;
+
+                    // Set application deadline if exists
+                    if (job.application_deadline) {
+                        try {
+                            const deadlineDate = new Date(job.application_deadline).toISOString().split('T')[0];
+                            const deadlineField = document.getElementById('jobDeadline');
+                            if (deadlineField) {
+                                deadlineField.value = deadlineDate;
+                                // Set minimum date to today
+                                const today = new Date().toISOString().split('T')[0];
+                                deadlineField.min = today;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing deadline:', e);
+                        }
+                    }
+
+                    // Store current job ID and title for updates/deletion
+                    document.getElementById('editJobForm').dataset.jobId = job.id || job._id;
+                    document.getElementById('editJobForm').dataset.jobTitle = job.title;
+
+                    console.log('Form populated successfully');
+
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error response:', errorData);
+
+                    if (response.status === 400) {
+                        alert(`Bad request: ${errorData.detail || 'Invalid job ID format'}`);
+                    } else if (response.status === 403 || response.status === 404) {
+                        alert('You do not have permission to edit this job or it does not exist.');
+                    } else {
+                        alert(`Failed to load job: ${errorData.detail || 'Unknown error'}`);
+                    }
+
+                    window.location.href = 'admin-jobs.html';
+                }
+
+            } catch (error) {
+                console.error('Error loading job:', error);
+                alert('Error loading job: ' + error.message);
+                window.location.href = 'admin-jobs.html';
+            }
+        }
+
+
+        function loadJobFromCache(jobId) {
+            console.log('Loading job from cache:', jobId);
+
+            const accessToken = localStorage.getItem('access_token');
+            const cachedJobs = JSON.parse(localStorage.getItem('cachedJobs') || '[]');
+            const adminEmail = localStorage.getItem('adminEmail');
+
+            // Find job in cache
+            const job = cachedJobs.find(j => j.id === jobId);
+
+            if (!job) {
+                alert('Job not found in cache. Please go back and refresh the jobs list.');
+                window.location.href = 'admin-jobs.html';
+                return;
+            }
+
+            // Check if job belongs to current admin
+            if (job.posted_by_email !== adminEmail) {
+                alert('You do not have permission to edit this job.');
+                window.location.href = 'admin-jobs.html';
+                return;
+            }
+
+            console.log('Job loaded from cache:', job);
+
+            // Populate form with job data from cache
+            document.getElementById('jobTitle').value = job.title || '';
+            document.getElementById('jobCompany').value = job.company || '';
+            document.getElementById('jobLocation').value = job.location || '';
+            document.getElementById('jobType').value = job.type || 'Full-Time';
+            document.getElementById('jobSalary').value = job.salary || '';
+            document.getElementById('jobStatus').value = job.status || 'active';
+            document.getElementById('jobDescription').value = job.description || '';
+            document.getElementById('jobRequirements').value = job.requirements || '';
+            document.getElementById('jobBenefits').value = job.benefits || '';
+            document.getElementById('jobSkills').value = job.skills ? job.skills.join(', ') : '';
+
+            // Set application deadline if exists
+            if (job.application_deadline) {
+                const deadlineDate = new Date(job.application_deadline).toISOString().split('T')[0];
+                if (document.getElementById('jobDeadline')) {
+                    document.getElementById('jobDeadline').value = deadlineDate;
+                }
+            }
+
+            // Store current job ID and title for updates/deletion
+            document.getElementById('editJobForm').dataset.jobId = jobId;
+            document.getElementById('editJobForm').dataset.jobTitle = job.title;
+
+            alert('Loaded from cache. Some features may be limited.');
+        }
+
+        // Update the form submission
+        document.getElementById('editJobForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const jobId = this.dataset.jobId;
+            const jobTitle = this.dataset.jobTitle;
+
+            console.log('Updating job ID:', jobId);
+
+            if (!jobId) {
+                alert('Job ID not found');
+                return;
+            }
+
+            const accessToken = localStorage.getItem('access_token');
+
+            if (!accessToken) {
+                alert('No authentication token found. Please login again.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Get form data
+            const jobData = {
+                title: document.getElementById('jobTitle').value,
+                company: document.getElementById('jobCompany').value,
+                location: document.getElementById('jobLocation').value,
+                type: document.getElementById('jobType').value,
+                salary: document.getElementById('jobSalary').value || null,
+                status: document.getElementById('jobStatus').value,
+                description: document.getElementById('jobDescription').value,
+                requirements: document.getElementById('jobRequirements').value,
+                benefits: document.getElementById('jobBenefits').value || null,
+            };
+
+            // Handle skills
+            const skillsInput = document.getElementById('jobSkills').value;
+            if (skillsInput) {
+                jobData.skills = skillsInput.split(',').map(skill => skill.trim()).filter(skill => skill);
+            }
+
+            // Add deadline if field exists and has value
+            const deadlineField = document.getElementById('jobDeadline');
+            if (deadlineField && deadlineField.value) {
+                jobData.application_deadline = deadlineField.value;
+            }
+
+            console.log('Update data:', jobData);
+
+            try {
+                // Show loading state
+                const submitBtn = document.querySelector('#editJobForm button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Updating...';
+                submitBtn.disabled = true;
+
+                // Update job in backend
+                const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(jobData)
+                });
+
+                console.log('Update response status:', response.status);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Update successful:', data);
+
+                    // Update all caches
+                    updateJobInAllCaches(jobId, jobData, data);
+
+                    // Show success message
+                    alert('Job updated successfully!');
+
+                    // Redirect to jobs list
+                    window.location.href = 'admin-jobs.html';
+
+                } else {
+                    const errorData = await response.json();
+                    console.error('Update error:', errorData);
+
+                    if (response.status === 400) {
+                        alert(`Bad request: ${errorData.detail || 'Invalid data format'}`);
+                    } else if (response.status === 403 || response.status === 404) {
+                        alert('You do not have permission to edit this job or it does not exist.');
+                        window.location.href = 'admin-jobs.html';
+                    } else {
+                        throw new Error(errorData.detail || `Failed to update job (Status: ${response.status})`);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Update job error:', error);
+                alert('Error: ' + error.message);
+
+                // Reset button
+                const submitBtn = document.querySelector('#editJobForm button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.textContent = 'Update Job';
+                    submitBtn.disabled = false;
+                }
+            }
+        });
+
+        function updateJobInAllCaches(jobId, updateData, backendData) {
+            // Update cached jobs
+            const cachedJobs = JSON.parse(localStorage.getItem('cachedJobs') || '[]');
+            const updatedCachedJobs = cachedJobs.map(job => {
+                if (job.id === jobId || job._id === jobId) {
+                    return { ...job, ...updateData, ...backendData };
+                }
+                return job;
+            });
+            localStorage.setItem('cachedJobs', JSON.stringify(updatedCachedJobs));
+
+            // Update admin jobs cache
+            const adminJobs = JSON.parse(localStorage.getItem('adminJobs') || '[]');
+            const updatedAdminJobs = adminJobs.map(job => {
+                if (job.id === jobId || job._id === jobId) {
+                    return { ...job, ...updateData, ...backendData };
+                }
+                return job;
+            });
+            localStorage.setItem('adminJobs', JSON.stringify(updatedAdminJobs));
+
+            console.log('Job updated in all caches:', jobId);
+        }
+
+        // Delete job functionality
+        document.getElementById('deleteJobBtn').addEventListener('click', async function () {
+            const jobId = document.getElementById('editJobForm').dataset.jobId;
+            const jobTitle = document.getElementById('editJobForm').dataset.jobTitle;
+
+            if (!jobId || !jobTitle) {
+                alert('Job information not found');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete "${jobTitle}"? This action cannot be undone.`)) {
+                const accessToken = localStorage.getItem('access_token');
+
+                if (!accessToken) {
+                    alert('No authentication token found');
+                    return;
+                }
+
+                try {
+                    console.log('Deleting job with ID:', jobId);
+
+                    const response = await fetch(`${API_BASE_URL}/api/jobs/${jobId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`,
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    console.log('Delete response status:', response.status);
+
+                    if (response.ok) {
+                        // Remove from all caches
+                        removeJobFromAllCaches(jobId);
+
+                        alert('Job deleted successfully!');
+                        window.location.href = 'admin-jobs.html';
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Delete error response:', errorData);
+
+                        if (response.status === 400) {
+                            // Delete from cache only
+                            removeJobFromAllCaches(jobId);
+                            alert('Job deleted from local cache. Will be removed from backend when available.');
+                            window.location.href = 'admin-jobs.html';
+                        } else if (response.status === 403 || response.status === 404) {
+                            alert('You do not have permission to delete this job or it does not exist.');
+                            window.location.href = 'admin-jobs.html';
+                        } else {
+                            throw new Error(errorData.detail || `Failed to delete job (Status: ${response.status})`);
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('Delete job error:', error);
+                    alert('Error: ' + error.message + '\nDeleting from cache only.');
+
+                    // Delete from cache only
+                    removeJobFromAllCaches(jobId);
+                    window.location.href = 'admin-jobs.html';
+                }
+            }
+        });
+
+        function removeJobFromAllCaches(jobId) {
+            // Remove from admin jobs cache
+            const adminJobs = JSON.parse(localStorage.getItem('adminJobs') || '[]');
+            const updatedAdminJobs = adminJobs.filter(job => job.id !== jobId);
+            localStorage.setItem('adminJobs', JSON.stringify(updatedAdminJobs));
+
+            // Remove from cached jobs
+            const cachedJobs = JSON.parse(localStorage.getItem('cachedJobs') || '[]');
+            const updatedCachedJobs = cachedJobs.filter(job => job.id !== jobId);
+            localStorage.setItem('cachedJobs', JSON.stringify(updatedCachedJobs));
+
+            // Remove from saved jobs if exists
+            const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+            const updatedSavedJobs = savedJobs.filter(job => job.id !== jobId);
+            localStorage.setItem('savedJobs', JSON.stringify(updatedSavedJobs));
+
+            console.log('Job removed from all caches:', jobId);
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('isAdmin');
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminName');
+            localStorage.removeItem('adminRole');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('access_token');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Applicants – Admin</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Garamond&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .application-status-pending {
+            background-color: #ffc107 !important;
+            color: #000 !important;
+        }
+
+        .application-status-reviewed {
+            background-color: #0dcaf0 !important;
+            color: #000 !important;
+        }
+
+        .application-status-shortlisted {
+            background-color: #17a2b8 !important;
+            color: #fff !important;
+        }
+
+        .application-status-accepted {
+            background-color: #198754 !important;
+            color: #fff !important;
+        }
+
+        .application-status-rejected {
+            background-color: #dc3545 !important;
+            color: #fff !important;
+        }
+
+        .job-filter-select {
+            max-width: 300px;
+        }
+
+        .view-application-btn {
+            cursor: pointer;
+        }
+
+        .modal-lg {
+            max-width: 800px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold">Smart<span style="color: var(--primary-dark);">Job</span>Finder</a>
+            <div>
+                <span class="me-3 text-muted" id="adminWelcome">Welcome, Admin</span>
+                <a href="admin-dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+                <a href="admin-jobs.html" class="btn btn-outline-primary rounded-pill me-2">Manage Jobs</a>
+                <a href="add-job.html" class="btn btn-outline-primary rounded-pill me-2">Add Job</a>
+                <a href="index.html" class="btn btn-primary rounded-pill" onclick="adminLogout()">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold" style="font-family:'Playfair Display';">Manage Applicants</h2>
+                <p class="text-muted mb-0">View and manage applications for your jobs</p>
+            </div>
+            <div class="d-flex gap-2">
+                <select class="form-select rounded-pill job-filter-select" id="jobFilter">
+                    <option value="">All Jobs</option>
+                    <!-- Jobs will be loaded dynamically -->
+                </select>
+                <select class="form-select rounded-pill" id="statusFilter" style="width: 150px;">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="reviewed">Reviewed</option>
+                    <option value="shortlisted">Shortlisted</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card p-3 rounded-4 shadow-sm text-center">
+                    <div class="stat-icon mb-2">
+                        <i class="fas fa-file-alt fa-2x text-primary"></i>
+                    </div>
+                    <h3 class="fw-bold" id="totalApplications">0</h3>
+                    <p class="text-muted mb-0">Total Applications</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card p-3 rounded-4 shadow-sm text-center">
+                    <div class="stat-icon mb-2">
+                        <i class="fas fa-clock fa-2x text-warning"></i>
+                    </div>
+                    <h3 class="fw-bold" id="pendingApplications">0</h3>
+                    <p class="text-muted mb-0">Pending Review</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card p-3 rounded-4 shadow-sm text-center">
+                    <div class="stat-icon mb-2">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                    <h3 class="fw-bold" id="acceptedApplications">0</h3>
+                    <p class="text-muted mb-0">Accepted</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card p-3 rounded-4 shadow-sm text-center">
+                    <div class="stat-icon mb-2">
+                        <i class="fas fa-times-circle fa-2x text-danger"></i>
+                    </div>
+                    <h3 class="fw-bold" id="rejectedApplications">0</h3>
+                    <p class="text-muted mb-0">Rejected</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Applicant</th>
+                                <th>Job Applied</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Applied Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="applicantsTableBody">
+                            <!-- Applicants will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="noApplicantsMessage" class="text-center py-5" style="display: none;">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No applicants found</h4>
+                    <p class="text-muted">No one has applied to your jobs yet</p>
+                    <a href="admin-jobs.html" class="btn btn-primary rounded-pill mt-2">View Your Jobs</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Application Details Modal -->
+    <div class="modal fade" id="applicationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Application Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Applicant Information</h6>
+                            <p><strong>Name:</strong> <span id="modalApplicantName"></span></p>
+                            <p><strong>Email:</strong> <span id="modalApplicantEmail"></span></p>
+                            <p><strong>Phone:</strong> <span id="modalApplicantPhone"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Job Information</h6>
+                            <p><strong>Job Title:</strong> <span id="modalJobTitle"></span></p>
+                            <p><strong>Company:</strong> <span id="modalJobCompany"></span></p>
+                            <p><strong>Applied Date:</strong> <span id="modalAppliedDate"></span></p>
+                            <p><strong>Current Status:</strong> <span id="modalCurrentStatus" class="badge"></span></p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6>Cover Letter</h6>
+                        <div class="p-3 bg-light rounded" id="modalCoverLetter"></div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Links</h6>
+                            <p><strong>Portfolio:</strong> <span id="modalPortfolioUrl"></span></p>
+                            <p><strong>LinkedIn:</strong> <span id="modalLinkedinUrl"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Resume</h6>
+                            <p id="modalResumeUrl">
+                                <i class="fas fa-file-pdf text-danger me-2"></i>
+                                <span id="resumeFileName"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6>Update Status</h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success rounded-pill" onclick="updateApplicationStatus('accepted')">
+                                <i class="fas fa-check me-1"></i> Accept
+                            </button>
+                            <button class="btn btn-warning rounded-pill"
+                                onclick="updateApplicationStatus('shortlisted')">
+                                <i class="fas fa-star me-1"></i> Shortlist
+                            </button>
+                            <button class="btn btn-danger rounded-pill" onclick="updateApplicationStatus('rejected')">
+                                <i class="fas fa-times me-1"></i> Reject
+                            </button>
+                            <button class="btn btn-info rounded-pill" onclick="updateApplicationStatus('reviewed')">
+                                <i class="fas fa-eye me-1"></i> Mark as Reviewed
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notes (Optional)</label>
+                        <textarea class="form-control" id="modalNotes" rows="3"
+                            placeholder="Add private notes about this applicant..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveApplicationNotes()">Save Notes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://localhost:8000";
+        let currentApplications = [];
+        let currentApplicationId = null;
+
+        // Admin authentication check
+        window.addEventListener('load', async function () {
+            const isAdmin = localStorage.getItem('isAdmin');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+            if (!isLoggedIn || !isAdmin) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Display admin name if available
+            const adminName = localStorage.getItem('adminName');
+            if (adminName) {
+                document.getElementById('adminWelcome').textContent = `Welcome, ${adminName}`;
+            }
+
+            // Load admin's jobs for filter
+            await loadAdminJobs();
+
+            // Load applicants
+            await loadApplicants();
+
+            // Load application stats
+            await loadApplicationStats();
+
+            // Add event listeners for filters
+            document.getElementById('jobFilter').addEventListener('change', filterApplicants);
+            document.getElementById('statusFilter').addEventListener('change', filterApplicants);
+        });
+
+        async function loadAdminJobs() {
+            const accessToken = localStorage.getItem('access_token');
+
+            if (!accessToken) {
+                console.error('No access token found');
+                return;
+            }
+
+            try {
+                // Fetch admin's jobs from backend
+                const response = await fetch(`${API_BASE_URL}/api/jobs/admin/my-jobs`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const jobs = await response.json();
+                    const jobFilter = document.getElementById('jobFilter');
+
+                    // Clear existing options except the first one
+                    while (jobFilter.options.length > 1) {
+                        jobFilter.remove(1);
+                    }
+
+                    // Add job options
+                    jobs.forEach(job => {
+                        const option = document.createElement('option');
+                        option.value = job.id || job._id;
+                        option.textContent = `${job.title} - ${job.company}`;
+                        jobFilter.appendChild(option);
+                    });
+
+                    console.log('Loaded admin jobs for filter:', jobs.length);
+
+                } else {
+                    console.error('Failed to load admin jobs');
+                }
+
+            } catch (error) {
+                console.error('Error loading admin jobs:', error);
+            }
+        }
+
+        async function loadApplicants() {
+            const accessToken = localStorage.getItem('access_token');
+
+            if (!accessToken) {
+                console.error('No access token found');
+                return;
+            }
+
+            try {
+                // Show loading state
+                document.getElementById('applicantsTableBody').innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading applicants...</p>
+                </td>
+            </tr>
+        `;
+
+                // Get filter values
+                const jobId = document.getElementById('jobFilter').value;
+                const status = document.getElementById('statusFilter').value;
+
+                // Build query string
+                let queryString = '';
+                if (jobId) queryString += `job_id=${encodeURIComponent(jobId)}&`;
+                if (status) queryString += `status_filter=${encodeURIComponent(status)}&`;
+
+                // Fetch applicants from backend
+                const response = await fetch(`${API_BASE_URL}/api/applications/admin/applicants?${queryString}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const applications = await response.json();
+                    currentApplications = applications;
+                    displayApplicants(applications);
+
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to load applicants');
+                }
+
+            } catch (error) {
+                console.error('Error loading applicants:', error);
+                document.getElementById('applicantsTableBody').innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-4 text-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <p>Error loading applicants: ${error.message}</p>
+                    <button class="btn btn-outline-primary" onclick="loadApplicants()">Retry</button>
+                </td>
+            </tr>
+        `;
+            }
+        }
+
+        function displayApplicants(applications) {
+            const tableBody = document.getElementById('applicantsTableBody');
+            const noApplicantsMessage = document.getElementById('noApplicantsMessage');
+
+            if (applications.length === 0) {
+                tableBody.innerHTML = '';
+                noApplicantsMessage.style.display = 'block';
+                return;
+            }
+
+            noApplicantsMessage.style.display = 'none';
+
+            tableBody.innerHTML = applications.map(app => {
+                const appliedDate = new Date(app.applied_at).toLocaleDateString();
+
+                return `
+        <tr>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" 
+                             style="width: 40px; height: 40px;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0">${app.user_name || 'Unknown'}</h6>
+                        <small class="text-muted">${getTimeAgo(app.applied_at)}</small>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <strong>${app.job_title || 'N/A'}</strong><br>
+                <small class="text-muted">${app.job_company || ''}</small>
+            </td>
+            <td>${app.user_email}</td>
+            <td>${app.user_phone || 'N/A'}</td>
+            <td>${appliedDate}</td>
+            <td>
+                <span class="badge application-status-${app.status}">${app.status}</span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-primary rounded-pill me-1" 
+                        onclick="viewApplication('${app.id || app._id}')">
+                    <i class="fas fa-eye"></i> View
+                </button>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-success rounded-pill" 
+                            onclick="quickUpdateStatus('${app.id || app._id}', 'accepted')">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger rounded-pill" 
+                            onclick="quickUpdateStatus('${app.id || app._id}', 'rejected')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `}).join('');
+        }
+
+        function getTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 60) {
+                return `${diffMins} minutes ago`;
+            } else if (diffHours < 24) {
+                return `${diffHours} hours ago`;
+            } else if (diffDays < 7) {
+                return `${diffDays} days ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        async function loadApplicationStats() {
+            const accessToken = localStorage.getItem('access_token');
+
+            if (!accessToken) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/applications/admin/stats`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const stats = await response.json();
+
+                    // Update stat cards
+                    document.getElementById('totalApplications').textContent = stats.total_applications || 0;
+                    document.getElementById('pendingApplications').textContent = stats.pending_applications || 0;
+                    document.getElementById('acceptedApplications').textContent = stats.accepted_applications || 0;
+                    document.getElementById('rejectedApplications').textContent = stats.rejected_applications || 0;
+
+                } else {
+                    console.error('Failed to load application stats');
+                }
+
+            } catch (error) {
+                console.error('Error loading application stats:', error);
+            }
+        }
+
+        function filterApplicants() {
+            // Filter the already loaded applications
+            const jobId = document.getElementById('jobFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            let filtered = currentApplications;
+
+            if (jobId) {
+                filtered = filtered.filter(app => app.job_id === jobId);
+            }
+
+            if (status) {
+                filtered = filtered.filter(app => app.status === status);
+            }
+
+            displayApplicants(filtered);
+        }
+
+        function viewApplication(applicationId) {
+            const application = currentApplications.find(app =>
+                app.id === applicationId || app._id === applicationId
+            );
+
+            if (!application) {
+                alert('Application not found');
+                return;
+            }
+
+            currentApplicationId = applicationId;
+
+            // Populate modal
+            document.getElementById('modalApplicantName').textContent = application.user_name;
+            document.getElementById('modalApplicantEmail').textContent = application.user_email;
+            document.getElementById('modalApplicantPhone').textContent = application.user_phone || 'N/A';
+            document.getElementById('modalJobTitle').textContent = application.job_title;
+            document.getElementById('modalJobCompany').textContent = application.job_company;
+            document.getElementById('modalAppliedDate').textContent = new Date(application.applied_at).toLocaleString();
+            document.getElementById('modalCoverLetter').textContent = application.cover_letter;
+
+            // Portfolio and LinkedIn
+            const portfolioUrl = application.portfolio_url ?
+                `<a href="${application.portfolio_url}" target="_blank">View Portfolio</a>` : 'N/A';
+            const linkedinUrl = application.linkedin_url ?
+                `<a href="${application.linkedin_url}" target="_blank">View LinkedIn</a>` : 'N/A';
+
+            document.getElementById('modalPortfolioUrl').innerHTML = portfolioUrl;
+            document.getElementById('modalLinkedinUrl').innerHTML = linkedinUrl;
+
+            // Resume
+            const resumeFileName = application.resume_url ?
+                `<a href="${application.resume_url}" target="_blank">${application.resume_url}</a>` : 'No resume uploaded';
+            document.getElementById('resumeFileName').innerHTML = resumeFileName;
+
+            // Status badge
+            const statusBadge = document.getElementById('modalCurrentStatus');
+            statusBadge.textContent = application.status;
+            statusBadge.className = `badge application-status-${application.status}`;
+
+            // Notes
+            document.getElementById('modalNotes').value = application.notes || '';
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('applicationModal'));
+            modal.show();
+        }
+
+        async function updateApplicationStatus(newStatus) {
+            if (!currentApplicationId) {
+                alert('No application selected');
+                return;
+            }
+
+            const accessToken = localStorage.getItem('access_token');
+            const notes = document.getElementById('modalNotes').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/applications/${currentApplicationId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        notes: notes || null
+                    })
+                });
+
+                if (response.ok) {
+                    const updatedApp = await response.json();
+
+                    // Update in current applications array
+                    const index = currentApplications.findIndex(app =>
+                        app.id === currentApplicationId || app._id === currentApplicationId
+                    );
+
+                    if (index !== -1) {
+                        currentApplications[index] = updatedApp;
+                    }
+
+                    // Show success message
+                    alert(`Application ${newStatus} successfully!`);
+
+                    // Close modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('applicationModal'));
+                    modal.hide();
+
+                    // Reload applicants and stats
+                    await loadApplicants();
+                    await loadApplicationStats();
+
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to update status');
+                }
+
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function quickUpdateStatus(applicationId, newStatus) {
+            if (!confirm(`Are you sure you want to ${newStatus} this application?`)) {
+                return;
+            }
+
+            const accessToken = localStorage.getItem('access_token');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/applications/${applicationId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                });
+
+                if (response.ok) {
+                    const updatedApp = await response.json();
+
+                    // Update in current applications array
+                    const index = currentApplications.findIndex(app =>
+                        app.id === applicationId || app._id === applicationId
+                    );
+
+                    if (index !== -1) {
+                        currentApplications[index] = updatedApp;
+                    }
+
+                    // Show success message
+                    alert(`Application ${newStatus} successfully!`);
+
+                    // Reload applicants and stats
+                    await loadApplicants();
+                    await loadApplicationStats();
+
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to update status');
+                }
+
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function saveApplicationNotes() {
+            if (!currentApplicationId) {
+                return;
+            }
+
+            const accessToken = localStorage.getItem('access_token');
+            const notes = document.getElementById('modalNotes').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/applications/${currentApplicationId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        notes: notes || null
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Notes saved successfully!');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to save notes');
+                }
+
+            } catch (error) {
+                console.error('Error saving notes:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('isAdmin');
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminName');
+            localStorage.removeItem('adminRole');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('access_token');
+            window.location.href = 'index.html';
+        }
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

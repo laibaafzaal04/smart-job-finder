@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Job - Smart Job Finder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=EB+Garamond:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .form-control.error {
+            border-color: #dc3545;
+        }
+
+        .form-control.success {
+            border-color: #198754;
+        }
+
+        .job-info-card {
+            background-color: #f8f9fa;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            background-color: #f8f9fa !important;
+            border-color: #17A2B8 !important;
+        }
+
+        .upload-area.dragover {
+            background-color: #e9ecef !important;
+            border-color: #17A2B8 !important;
+        }
+
+        /* .application-success {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        } */
+        /* Add this instead: */
+        #applicationSuccess {
+            display: none;
+        }
+
+        .application-success {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="dashboard.html">Smart<span
+                    style="color: var(--primary-dark);">Job</span>Finder</a>
+            <div>
+                <a href="dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+                <a href="jobs.html" class="btn btn-outline-primary rounded-pill me-2">Browse Jobs</a>
+                <a href="profile.html" class="btn btn-outline-primary rounded-pill me-2">Profile</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Job Information -->
+                <div class="job-info-card">
+                    <div class="loading-spinner" id="jobLoading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading job details...</p>
+                    </div>
+                    <div id="jobDetails">
+                        <h3 id="jobTitle">Loading job title...</h3>
+                        <p class="mb-1"><strong id="jobCompany">Loading company...</strong></p>
+                        <p class="text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> <span
+                                id="jobLocation">Loading location...</span></p>
+                        <div class="d-flex gap-2 mb-3">
+                            <span class="badge bg-success" id="jobType">Loading type...</span>
+                            <span class="badge bg-primary" id="jobSalary">Loading salary...</span>
+                        </div>
+                        <p id="jobDescription">Loading job description...</p>
+                    </div>
+                </div>
+
+                <!-- Application Form -->
+                <div class="card shadow-lg p-4 rounded-4" id="applicationForm">
+                    <h2 class="fw-bold mb-4" style="font-family: 'Playfair Display';">Apply for this Position</h2>
+
+                    <div id="alreadyAppliedMessage" class="alert alert-info" style="display: none;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Already Applied</strong>
+                        <p class="mb-0">You have already submitted an application for this position.</p>
+                        <div class="mt-2">
+                            <a href="profile.html" class="btn btn-primary btn-sm">View My Applications</a>
+                            <a href="jobs.html" class="btn btn-outline-primary btn-sm ms-2">Browse More Jobs</a>
+                        </div>
+                    </div>
+
+                    <form id="jobApplicationForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Full Name *</label>
+                                    <input type="text" class="form-control rounded-pill" id="applicantName" required>
+                                    <div class="error-message" id="nameError">Please enter your full name</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Email *</label>
+                                    <input type="email" class="form-control rounded-pill" id="applicantEmail" required>
+                                    <div class="error-message" id="emailError">Please enter a valid email address</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Phone Number *</label>
+                                    <input type="tel" class="form-control rounded-pill" id="applicantPhone" required>
+                                    <div class="error-message" id="phoneError">Please enter a valid phone number</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Current Position</label>
+                                    <input type="text" class="form-control rounded-pill" id="applicantPosition"
+                                        placeholder="e.g., Software Engineer">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Cover Letter *</label>
+                            <textarea class="form-control" id="coverLetter" rows="5"
+                                placeholder="Tell us why you're interested in this position and why you'd be a good fit..."
+                                required></textarea>
+                            <div class="error-message" id="coverLetterError">Please write a cover letter</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Resume/CV *</label>
+                            <div class="upload-area p-4 border rounded-4 bg-light text-center" id="resumeUploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-2x text-primary mb-3"></i>
+                                <h5>Upload your resume</h5>
+                                <p class="text-muted">or</p>
+                                <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" style="display: none;">
+                                <button type="button" class="btn btn-outline-primary rounded-pill"
+                                    onclick="document.getElementById('resumeFile').click()">
+                                    Browse Files
+                                </button>
+                                <p class="small text-muted mt-2">Supported formats: PDF, DOC, DOCX (Max 5MB)</p>
+                            </div>
+                            <div id="resumeFileName" class="mt-2 text-success fw-bold" style="display: none;"></div>
+                            <div class="error-message" id="resumeError">Please upload your resume</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Portfolio or Website (Optional)</label>
+                            <input type="url" class="form-control rounded-pill" id="portfolioUrl"
+                                placeholder="https://">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">LinkedIn Profile (Optional)</label>
+                            <input type="url" class="form-control rounded-pill" id="linkedinUrl"
+                                placeholder="https://linkedin.com/in/yourprofile">
+                        </div>
+
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" id="termsAgreement" required>
+                            <label class="form-check-label" for="termsAgreement">
+                                I confirm that the information provided is accurate and I agree to the processing of my
+                                application.
+                            </label>
+                            <div class="error-message" id="termsError">You must agree to the terms</div>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4" id="submitBtn">Submit
+                                Application</button>
+                            <a href="javascript:history.back()"
+                                class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Success Message -->
+                <div class="card shadow-lg p-5 rounded-4 text-center" id="applicationSuccess" style="display: none;">
+                    <div class="application-success">
+                        <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                        <h3 class="fw-bold">Application Submitted!</h3>
+                        <p class="text-muted mb-4">Your application has been successfully submitted. We'll review it and
+                            get back to you soon.</p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="jobs.html" class="btn btn-primary rounded-pill px-4">Browse More Jobs</a>
+                            <a href="dashboard.html" class="btn btn-outline-primary rounded-pill px-4">Back to
+                                Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
+                    <h5 class="fw-bold mb-3">Application Tips</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            <strong>Customize your cover letter</strong>
+                            <p class="small text-muted mt-1">Tailor your cover letter to this specific job and company.
+                            </p>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            <strong>Update your resume</strong>
+                            <p class="small text-muted mt-1">Make sure your resume is up-to-date and highlights relevant
+                                skills.</p>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            <strong>Check for errors</strong>
+                            <p class="small text-muted mt-1">Proofread your application for spelling and grammar
+                                mistakes.</p>
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            <strong>Follow up</strong>
+                            <p class="small text-muted mt-1">Consider following up in 1-2 weeks if you haven't heard
+                                back.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://localhost:8000";
+        let currentJobId = null;
+        let currentJobData = null;
+        let hasAlreadyApplied = false;
+
+        // Initialize the page
+        window.addEventListener('load', async function () {
+            await initializePage();
+        });
+
+        async function initializePage() {
+            // Get job ID from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            currentJobId = urlParams.get('id');
+
+            console.log('Job ID from URL:', currentJobId);
+
+            if (!currentJobId) {
+                alert('No job specified. Redirecting to jobs page.');
+                window.location.href = 'jobs.html';
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('jobDetails').style.display = 'none';
+            document.getElementById('jobLoading').style.display = 'block';
+
+            try {
+                // Load job details from backend
+                await loadJobDetails();
+
+                // Pre-fill user data from profile
+                await prefillUserData();
+
+                // Initialize file upload functionality
+                initializeFileUpload();
+
+                // Check if already applied
+                await checkIfAlreadyApplied();
+
+                // Hide loading, show details
+                document.getElementById('jobLoading').style.display = 'none';
+                document.getElementById('jobDetails').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                document.getElementById('jobLoading').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Error loading job details</strong>
+                        <p class="mb-0">${error.message}</p>
+                        <a href="jobs.html" class="btn btn-primary mt-2">Back to Jobs</a>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadJobDetails() {
+            try {
+                console.log('Fetching job details for ID:', currentJobId);
+
+                const response = await fetch(`${API_BASE_URL}/api/jobs/${currentJobId}`);
+
+                if (response.ok) {
+                    const job = await response.json();
+                    console.log('Job data received:', job);
+                    currentJobData = job;
+                    displayJobDetails(job);
+
+                } else if (response.status === 404) {
+                    throw new Error('Job not found');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to load job details');
+                }
+
+            } catch (error) {
+                console.error('Error loading job details:', error);
+
+                // Try to get from localStorage cache
+                const cachedJobs = JSON.parse(localStorage.getItem('cachedJobs') || '[]');
+                const cachedJob = cachedJobs.find(j => j.id === currentJobId || j._id === currentJobId);
+
+                if (cachedJob) {
+                    console.log('Using cached job data:', cachedJob);
+                    currentJobData = cachedJob;
+                    displayJobDetails(cachedJob);
+                } else {
+                    throw new Error('Job not found. Please try another job.');
+                }
+            }
+        }
+
+        function displayJobDetails(job) {
+            // Get job ID (handle both _id and id fields)
+            const jobId = job.id || job._id;
+
+            document.getElementById('jobTitle').textContent = job.title || 'Job Title';
+            document.getElementById('jobCompany').textContent = job.company || 'Company';
+            document.getElementById('jobLocation').textContent = job.location || 'Location';
+            document.getElementById('jobType').textContent = job.type || 'Job Type';
+            document.getElementById('jobSalary').textContent = job.salary || 'Salary not specified';
+            document.getElementById('jobDescription').textContent = job.description || 'Job description not available';
+
+            // Store job data for application
+            localStorage.setItem('currentJob', JSON.stringify(job));
+        }
+
+        async function prefillUserData() {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+
+                if (!accessToken) {
+                    console.log('No access token found');
+                    return;
+                }
+
+                // Fetch user profile from backend
+                const response = await fetch(`${API_BASE_URL}/api/profile/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const profile = await response.json();
+
+                    if (profile.full_name) {
+                        document.getElementById('applicantName').value = profile.full_name;
+                    }
+
+                    if (profile.email) {
+                        document.getElementById('applicantEmail').value = profile.email;
+                    }
+
+                    if (profile.phone) {
+                        document.getElementById('applicantPhone').value = profile.phone;
+                    }
+
+                    if (profile.headline) {
+                        document.getElementById('applicantPosition').value = profile.headline;
+                    }
+
+                    console.log('Prefilled user data from profile');
+
+                } else {
+                    // Fallback to localStorage
+                    const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+
+                    if (userData.fullName) {
+                        document.getElementById('applicantName').value = userData.fullName;
+                    }
+
+                    if (userData.email) {
+                        document.getElementById('applicantEmail').value = userData.email;
+                    }
+
+                    if (userData.phone) {
+                        document.getElementById('applicantPhone').value = userData.phone;
+                    }
+
+                    if (userData.headline) {
+                        document.getElementById('applicantPosition').value = userData.headline;
+                    }
+
+                    console.log('Prefilled user data from localStorage');
+                }
+
+            } catch (error) {
+                console.error('Error prefilling user data:', error);
+                // Continue without prefilling
+            }
+        }
+
+        function initializeFileUpload() {
+            const resumeFile = document.getElementById('resumeFile');
+            const resumeUploadArea = document.getElementById('resumeUploadArea');
+            const resumeFileName = document.getElementById('resumeFileName');
+
+            // Click on upload area to trigger file input
+            resumeUploadArea.addEventListener('click', function () {
+                resumeFile.click();
+            });
+
+            // File selection handler
+            resumeFile.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Check file size (5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        showError('resumeError', 'File size must be less than 5MB');
+                        resumeFile.value = '';
+                        return;
+                    }
+
+                    // Check file type
+                    const allowedTypes = [
+                        'application/pdf',
+                        'application/msword',
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                    ];
+                    if (!allowedTypes.includes(file.type)) {
+                        showError('resumeError', 'Please upload a PDF, DOC, or DOCX file');
+                        resumeFile.value = '';
+                        return;
+                    }
+
+                    resumeFileName.textContent = `Selected: ${file.name}`;
+                    resumeFileName.style.display = 'block';
+                    hideError('resumeError');
+                }
+            });
+
+            // Drag and drop functionality
+            resumeUploadArea.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                resumeUploadArea.classList.add('dragover');
+            });
+
+            resumeUploadArea.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                resumeUploadArea.classList.remove('dragover');
+            });
+
+            resumeUploadArea.addEventListener('drop', function (e) {
+                e.preventDefault();
+                resumeUploadArea.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    resumeFile.files = e.dataTransfer.files;
+                    const event = new Event('change', { bubbles: true });
+                    resumeFile.dispatchEvent(event);
+                }
+            });
+        }
+
+        async function checkIfAlreadyApplied() {
+            try {
+                const accessToken = localStorage.getItem('access_token');
+
+                if (!accessToken) {
+                    console.log('No access token, cannot check application status');
+                    return;
+                }
+
+                // Fetch user's applications from backend
+                const response = await fetch(`${API_BASE_URL}/api/applications/my-applications`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const applications = await response.json();
+
+                    // Get the correct job ID (could be _id or id)
+                    const jobIdToCheck = currentJobData.id || currentJobData._id || currentJobId;
+
+                    hasAlreadyApplied = applications.some(app =>
+                        app.job_id === jobIdToCheck ||
+                        app.job_id === currentJobId
+                    );
+
+                    if (hasAlreadyApplied) {
+                        // Show message that user has already applied
+                        document.getElementById('alreadyAppliedMessage').style.display = 'block';
+                        document.getElementById('jobApplicationForm').style.display = 'none';
+                    }
+
+                } else {
+                    console.log('Could not fetch applications from backend');
+                    // Check localStorage as fallback
+                    const appliedJobs = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
+                    hasAlreadyApplied = appliedJobs.some(app => app.jobId === currentJobId);
+
+                    if (hasAlreadyApplied) {
+                        document.getElementById('alreadyAppliedMessage').style.display = 'block';
+                        document.getElementById('jobApplicationForm').style.display = 'none';
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error checking application status:', error);
+            }
+        }
+
+        // Validation functions
+        function validateForm() {
+            let isValid = true;
+
+            // Validate name
+            const name = document.getElementById('applicantName').value.trim();
+            if (name === '') {
+                showError('nameError', 'Please enter your full name');
+                isValid = false;
+            } else {
+                hideError('nameError');
+            }
+
+            // Validate email
+            const email = document.getElementById('applicantEmail').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email === '') {
+                showError('emailError', 'Please enter your email address');
+                isValid = false;
+            } else if (!emailRegex.test(email)) {
+                showError('emailError', 'Please enter a valid email address');
+                isValid = false;
+            } else {
+                hideError('emailError');
+            }
+
+            // Validate phone
+            const phone = document.getElementById('applicantPhone').value.trim();
+            const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+            if (phone === '') {
+                showError('phoneError', 'Please enter your phone number');
+                isValid = false;
+            } else if (!phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''))) {
+                showError('phoneError', 'Please enter a valid phone number');
+                isValid = false;
+            } else {
+                hideError('phoneError');
+            }
+
+            // Validate cover letter
+            const coverLetter = document.getElementById('coverLetter').value.trim();
+            if (coverLetter === '') {
+                showError('coverLetterError', 'Please write a cover letter');
+                isValid = false;
+            } else {
+                hideError('coverLetterError');
+            }
+
+            // Validate resume
+            const resumeFile = document.getElementById('resumeFile');
+            if (resumeFile.files.length === 0) {
+                showError('resumeError', 'Please upload your resume');
+                isValid = false;
+            } else {
+                hideError('resumeError');
+            }
+
+            // Validate terms
+            const termsAgreement = document.getElementById('termsAgreement');
+            if (!termsAgreement.checked) {
+                showError('termsError', 'You must agree to the terms');
+                isValid = false;
+            } else {
+                hideError('termsError');
+            }
+
+            return isValid;
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+
+            // Add error class to corresponding input if it exists
+            const inputId = elementId.replace('Error', '');
+            const inputElement = document.getElementById(inputId);
+            if (inputElement) {
+                inputElement.classList.add('error');
+                inputElement.classList.remove('success');
+            }
+        }
+
+        function hideError(elementId) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.style.display = 'none';
+
+            // Remove error class from corresponding input if it exists
+            const inputId = elementId.replace('Error', '');
+            const inputElement = document.getElementById(inputId);
+            if (inputElement) {
+                inputElement.classList.remove('error');
+                inputElement.classList.add('success');
+            }
+        }
+
+        // Form submission
+        document.getElementById('jobApplicationForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            if (!validateForm()) {
+                return;
+            }
+
+            if (!currentJobId) {
+                alert('Job ID is missing. Please go back and try again.');
+                return;
+            }
+
+            // Get the correct job ID from job data
+            const jobId = currentJobData.id || currentJobData._id || currentJobId;
+
+            // Prepare application data
+            const applicationData = {
+                job_id: jobId,
+                cover_letter: document.getElementById('coverLetter').value.trim(),
+                portfolio_url: document.getElementById('portfolioUrl').value.trim() || null,
+                linkedin_url: document.getElementById('linkedinUrl').value.trim() || null,
+                status: 'pending'
+            };
+
+            // Get resume file (for now, just store filename)
+            const resumeFile = document.getElementById('resumeFile').files[0];
+            if (resumeFile) {
+                applicationData.resume_url = resumeFile.name;
+            }
+
+            const accessToken = localStorage.getItem('access_token');
+
+            if (!accessToken) {
+                alert('You must be logged in to apply for jobs. Redirecting to login page.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                // Show loading state
+                const submitBtn = document.getElementById('submitBtn');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Submitting...';
+                submitBtn.disabled = true;
+
+                console.log('Submitting application with data:', applicationData);
+
+                // Send application to backend
+                const response = await fetch(`${API_BASE_URL}/api/applications/apply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(applicationData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Save to localStorage for fallback
+                    const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+                    applications.push({
+                        id: data.id,
+                        jobId: data.job_id,
+                        userId: data.user_id,
+                        status: data.status,
+                        appliedAt: data.applied_at,
+                        ...applicationData
+                    });
+                    localStorage.setItem('applications', JSON.stringify(applications));
+
+                    // Also save to appliedJobs for compatibility
+                    const appliedJobs = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
+                    appliedJobs.push({
+                        jobId: jobId,
+                        jobTitle: currentJobData.title,
+                        company: currentJobData.company,
+                        appliedAt: new Date().toISOString(),
+                        status: 'pending'
+                    });
+                    localStorage.setItem('appliedJobs', JSON.stringify(appliedJobs));
+
+                    // Show success message PROPERLY
+                    document.getElementById('applicationForm').style.display = 'none';
+                    document.getElementById('applicationSuccess').style.display = 'block';
+
+                    // Optional: Scroll to success message
+                    document.getElementById('applicationSuccess').scrollIntoView({ behavior: 'smooth' });
+
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to submit application');
+                }
+
+            } catch (error) {
+                console.error('Application error:', error);
+
+                if (error.message.includes('Invalid job ID')) {
+                    alert('Error: Invalid job ID. Please make sure you are applying for a valid job.');
+                } else if (error.message.includes('already applied')) {
+                    alert('You have already applied for this job.');
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + error.message);
+                }
+
+                // Reset button
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.textContent = 'Submit Application';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

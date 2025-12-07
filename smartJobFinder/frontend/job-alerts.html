@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Alerts - Smart Job Finder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .alert-card {
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s;
+        }
+        .alert-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .keyword-badge {
+            background: var(--primary-light);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="dashboard.html">Smart<span style="color: var(--primary-dark);">Job</span>Finder</a>
+        <div>
+            <a href="dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+            <a href="profile.html" class="btn btn-outline-primary rounded-pill me-2">Profile</a>
+            <a href="index.html" class="btn btn-primary rounded-pill" onclick="logout()">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="d-flex align-items-center mb-4">
+                <a href="dashboard.html" class="btn btn-outline-secondary rounded-circle me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0" style="font-family: 'Playfair Display';">Job Alerts</h2>
+                    <p class="text-muted mb-0">Get notified when new jobs matching your criteria are posted</p>
+                </div>
+            </div>
+
+            <!-- Create New Alert -->
+            <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+                <h4 class="fw-bold mb-3"><i class="fas fa-plus-circle text-primary me-2"></i>Create New Alert</h4>
+                
+                <form id="createAlertForm">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Keywords (comma separated)</label>
+                                <input type="text" class="form-control rounded-pill" id="keywords" 
+                                       placeholder="e.g., Software Engineer, Python, React" required>
+                                <small class="text-muted">Separate multiple keywords with commas</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Location (optional)</label>
+                                <input type="text" class="form-control rounded-pill" id="location" 
+                                       placeholder="e.g., New York, Remote">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Job Type (optional)</label>
+                                <select class="form-select rounded-pill" id="jobType">
+                                    <option value="">Any Type</option>
+                                    <option value="Full-Time">Full-Time</option>
+                                    <option value="Part-Time">Part-Time</option>
+                                    <option value="Contract">Contract</option>
+                                    <option value="Internship">Internship</option>
+                                    <option value="Remote">Remote</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notification Frequency</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="frequency" id="daily" value="daily" checked>
+                                <label class="form-check-label" for="daily">
+                                    <i class="fas fa-calendar-day me-1"></i> Daily
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="frequency" id="weekly" value="weekly">
+                                <label class="form-check-label" for="weekly">
+                                    <i class="fas fa-calendar-week me-1"></i> Weekly
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="frequency" id="instant" value="instant">
+                                <label class="form-check-label" for="instant">
+                                    <i class="fas fa-bolt me-1"></i> Instant
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="fas fa-bell me-2"></i>Create Alert
+                    </button>
+                </form>
+            </div>
+
+            <!-- Existing Alerts -->
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <h4 class="fw-bold mb-3"><i class="fas fa-list text-primary me-2"></i>Your Alerts</h4>
+                
+                <div id="alertsList">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Loading your alerts...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+                <h5 class="fw-bold mb-3"><i class="fas fa-info-circle text-primary me-2"></i>About Job Alerts</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-3">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Daily Alerts:</strong> Sent every morning at 9 AM
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Weekly Alerts:</strong> Sent every Monday
+                    </li>
+                    <li class="mb-3">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Instant:</strong> Real-time notifications
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <strong>Smart Matching:</strong> AI-powered job matching
+                    </li>
+                </ul>
+
+                <hr class="my-4">
+
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <small><strong>Tip:</strong> Create multiple alerts for different job types to never miss an opportunity!</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_BASE_URL = "http://localhost:8000";
+let userAlerts = [];
+
+window.addEventListener('load', async function() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    await loadUserAlerts();
+});
+
+async function loadUserAlerts() {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) return;
+
+    const alertsList = document.getElementById('alertsList');
+
+    try {
+        // For now, load from localStorage
+        // Backend endpoint will be used when available
+        const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        userAlerts = JSON.parse(localStorage.getItem('jobAlerts') || '[]');
+
+        if (userAlerts.length === 0) {
+            alertsList.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No alerts yet</h5>
+                    <p class="text-muted">Create your first job alert above</p>
+                </div>
+            `;
+            return;
+        }
+
+        displayAlerts(userAlerts);
+
+    } catch (error) {
+        console.error('Error loading alerts:', error);
+        alertsList.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Error loading alerts. Please try again.
+            </div>
+        `;
+    }
+}
+
+function displayAlerts(alerts) {
+    const alertsList = document.getElementById('alertsList');
+    
+    alertsList.innerHTML = alerts.map((alert, index) => `
+        <div class="alert-card p-3 rounded-4 shadow-sm mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-bell text-primary me-2"></i>
+                        <h6 class="mb-0 fw-bold">Alert #${index + 1}</h6>
+                        <span class="badge ${alert.active ? 'bg-success' : 'bg-secondary'} ms-2">
+                            ${alert.active ? 'Active' : 'Paused'}
+                        </span>
+                    </div>
+                    
+                    <div class="mb-2">
+                        ${alert.keywords.map(kw => `<span class="keyword-badge">${kw}</span>`).join('')}
+                    </div>
+                    
+                    <div class="small text-muted">
+                        ${alert.location ? `<i class="fas fa-map-marker-alt me-1"></i>${alert.location} ` : ''}
+                        ${alert.job_type ? `<i class="fas fa-briefcase me-1"></i>${alert.job_type} ` : ''}
+                        <i class="fas fa-clock me-1"></i>${alert.frequency}
+                    </div>
+                    
+                    <div class="small text-muted mt-2">
+                        Created: ${new Date(alert.created_at).toLocaleDateString()}
+                    </div>
+                </div>
+                
+                <div class="d-flex flex-column gap-2">
+                    <button class="btn btn-sm ${alert.active ? 'btn-warning' : 'btn-success'} rounded-pill" 
+                            onclick="toggleAlert(${index})">
+                        <i class="fas fa-${alert.active ? 'pause' : 'play'}"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger rounded-pill" onclick="deleteAlert(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+document.getElementById('createAlertForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+        alert('Please login to create alerts');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const keywords = document.getElementById('keywords').value
+        .split(',')
+        .map(k => k.trim())
+        .filter(k => k);
+    
+    const location = document.getElementById('location').value.trim() || null;
+    const jobType = document.getElementById('jobType').value || null;
+    const frequency = document.querySelector('input[name="frequency"]:checked').value;
+
+    if (keywords.length === 0) {
+        alert('Please enter at least one keyword');
+        return;
+    }
+
+    const alertData = {
+        keywords: keywords,
+        location: location,
+        job_type: jobType,
+        frequency: frequency,
+        active: true,
+        created_at: new Date().toISOString(),
+        last_sent: null
+    };
+
+    try {
+        const submitBtn = document.querySelector('#createAlertForm button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
+        submitBtn.disabled = true;
+
+        // Call backend API
+        const response = await fetch(`${API_BASE_URL}/api/user/job-alerts`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify(alertData)
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Also save to localStorage
+            userAlerts.push(alertData);
+            localStorage.setItem('jobAlerts', JSON.stringify(userAlerts));
+            
+            alert('✅ Job alert created successfully!');
+            
+            // Reset form
+            document.getElementById('createAlertForm').reset();
+            
+            // Reload alerts
+            await loadUserAlerts();
+        } else {
+            throw new Error('Failed to create alert');
+        }
+
+        submitBtn.innerHTML = '<i class="fas fa-bell me-2"></i>Create Alert';
+        submitBtn.disabled = false;
+
+    } catch (error) {
+        console.error('Error creating alert:', error);
+        alert('❌ Error creating alert. Please try again.');
+        
+        const submitBtn = document.querySelector('#createAlertForm button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-bell me-2"></i>Create Alert';
+        submitBtn.disabled = false;
+    }
+});
+
+function toggleAlert(index) {
+    userAlerts[index].active = !userAlerts[index].active;
+    localStorage.setItem('jobAlerts', JSON.stringify(userAlerts));
+    displayAlerts(userAlerts);
+}
+
+function deleteAlert(index) {
+    if (confirm('Are you sure you want to delete this alert?')) {
+        userAlerts.splice(index, 1);
+        localStorage.setItem('jobAlerts', JSON.stringify(userAlerts));
+        loadUserAlerts();
+    }
+}
+
+function logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('access_token');
+    window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>

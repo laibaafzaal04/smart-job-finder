@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Job – Admin</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Garamond&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/style.css">
+
+</head>
+
+<body>
+
+    <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold">SmartJobFinder</a>
+            <div>
+                <span class="me-3 text-muted" id="adminWelcome">Welcome, Admin</span>
+                <a href="admin-dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+                <a href="admin-jobs.html" class="btn btn-outline-primary rounded-pill me-2">Manage Jobs</a>
+                <a href="admin-users.html" class="btn btn-outline-primary rounded-pill me-2">Manage Applicants</a>
+                <a href="index.html" class="btn btn-primary rounded-pill" onclick="adminLogout()">Logout</a>
+</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+
+        <div class="p-5 shadow-lg rounded-4">
+            <h2 class="fw-bold mb-4" style="font-family:'Playfair Display';">Add New Job</h2>
+
+            <form id="addJobForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Job Title</label>
+                            <input type="text" class="form-control rounded-pill" id="jobTitle" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Company</label>
+                            <input type="text" class="form-control rounded-pill" id="jobCompany" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Location</label>
+                            <input type="text" class="form-control rounded-pill" id="jobLocation" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Job Type</label>
+                            <select class="form-select rounded-pill" id="jobType" required>
+                                <option value="">Select Job Type</option>
+                                <option value="Full-Time">Full-Time</option>
+                                <option value="Part-Time">Part-Time</option>
+                                <option value="Internship">Internship</option>
+                                <option value="Contract">Contract</option>
+                                <option value="Remote">Remote</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Salary Range</label>
+                            <input type="text" class="form-control rounded-pill" id="jobSalary"
+                                placeholder="e.g., $50,000 - $70,000">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Application Deadline</label>
+                            <input type="date" class="form-control rounded-pill" id="jobDeadline">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Job Description</label>
+                    <textarea class="form-control" id="jobDescription" rows="6"
+                        placeholder="Enter detailed job description..." required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Requirements</label>
+                    <textarea class="form-control" id="jobRequirements" rows="4"
+                        placeholder="Enter job requirements (one per line)..." required></textarea>
+                    <small class="text-muted">Enter each requirement on a new line</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Benefits</label>
+                    <textarea class="form-control" id="jobBenefits" rows="3"
+                        placeholder="Enter job benefits (one per line)..."></textarea>
+                    <small class="text-muted">Enter each benefit on a new line</small>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Skills Required (comma separated)</label>
+                    <input type="text" class="form-control rounded-pill" id="jobSkills"
+                        placeholder="e.g., JavaScript, React, Node.js, Communication">
+                    <small class="text-muted">Separate skills with commas</small>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="jobActive" checked>
+                        <label class="form-check-label" for="jobActive">
+                            Job is active and visible to users
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Add Job</button>
+                    <a href="admin-jobs.html" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+
+        // Add this constant at the top
+        const API_BASE_URL = "http://localhost:8000";
+
+        // Admin authentication check
+        window.addEventListener('load', function () {
+            const isAdmin = localStorage.getItem('isAdmin');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+            if (!isLoggedIn || !isAdmin) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Display admin name if available
+            const adminName = localStorage.getItem('adminName');
+            if (adminName) {
+                document.getElementById('adminWelcome').textContent = `Welcome, ${adminName}`;
+            }
+
+            // Set minimum date for deadline to today
+            const today = new Date().toISOString().split('T')[0];
+            const deadlineField = document.getElementById('jobDeadline');
+            if (deadlineField) {
+                deadlineField.min = today;
+            }
+        });
+
+        // Form submission
+        document.getElementById('addJobForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Get form data
+            const jobData = {
+                title: document.getElementById('jobTitle').value,
+                company: document.getElementById('jobCompany').value,
+                location: document.getElementById('jobLocation').value,
+                type: document.getElementById('jobType').value,
+                salary: document.getElementById('jobSalary').value || null,
+                description: document.getElementById('jobDescription').value,
+                requirements: document.getElementById('jobRequirements').value,
+                benefits: document.getElementById('jobBenefits').value || null,
+                skills: document.getElementById('jobSkills').value ?
+                    document.getElementById('jobSkills').value.split(',').map(skill => skill.trim()) : [],
+                status: document.getElementById('jobActive').checked ? 'active' : 'inactive'
+            };
+
+            // Add deadline if field exists
+            const deadlineField = document.getElementById('jobDeadline');
+            if (deadlineField && deadlineField.value) {
+                jobData.application_deadline = deadlineField.value;
+            }
+
+            // Validate required fields
+            if (!jobData.title || !jobData.company || !jobData.location || !jobData.type || !jobData.description || !jobData.requirements) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                // Show loading state
+                const submitBtn = document.querySelector('#addJobForm button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = 'Adding Job...';
+                submitBtn.disabled = true;
+
+                // Get access token
+                const accessToken = localStorage.getItem('access_token');
+                if (!accessToken) {
+                    throw new Error('No authentication token found');
+                }
+
+                // Send job data to backend
+                const response = await fetch(`${API_BASE_URL}/api/jobs/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(jobData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Add to local cache
+                    const cachedJobs = JSON.parse(localStorage.getItem('cachedJobs') || '[]');
+                    cachedJobs.push(data);
+                    localStorage.setItem('cachedJobs', JSON.stringify(cachedJobs));
+
+                    // Show success message
+                    alert('Job added successfully!');
+
+                    // Redirect to jobs list
+                    window.location.href = 'admin-jobs.html';
+
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Failed to add job');
+                }
+
+            } catch (error) {
+                console.error('Add job error:', error);
+                alert('Error: ' + error.message);
+
+                // Reset button
+                const submitBtn = document.querySelector('#addJobForm button[type="submit"]');
+                submitBtn.textContent = 'Add Job';
+                submitBtn.disabled = false;
+            }
+        });
+
+        function generateJobId() {
+            // Generate a unique job ID
+            return 'job_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function saveJob(jobData) {
+            // Get existing jobs from localStorage
+            const existingJobs = JSON.parse(localStorage.getItem('adminJobs') || '[]');
+
+            // Add new job
+            existingJobs.push(jobData);
+
+            // Save back to localStorage
+            localStorage.setItem('adminJobs', JSON.stringify(existingJobs));
+
+            // Also update the main jobs list for users
+            updateUserJobs(jobData);
+        }
+
+        function updateUserJobs(jobData) {
+            // Get existing user jobs
+            const userJobs = JSON.parse(localStorage.getItem('jobs') || '[]');
+
+            // Add new job to user jobs
+            userJobs.push({
+                id: jobData.id,
+                title: jobData.title,
+                company: jobData.company,
+                location: jobData.location,
+                type: jobData.type,
+                salary: jobData.salary,
+                description: jobData.description,
+                requirements: jobData.requirements,
+                benefits: jobData.benefits,
+                skills: jobData.skills,
+                status: jobData.status,
+                postedDate: jobData.postedDate
+            });
+
+            // Save back to localStorage
+            localStorage.setItem('jobs', JSON.stringify(userJobs));
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('isAdmin');
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminName');
+            localStorage.removeItem('adminRole');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('access_token');
+            window.location.href = 'index.html';
+        }
+    </script>
+    
+
+</body>
+
+</html>

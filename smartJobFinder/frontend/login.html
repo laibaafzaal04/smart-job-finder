@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Smart Job Finder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=EB+Garamond:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .form-control.error {
+            border-color: #dc3545;
+        }
+
+        .form-control.success {
+            border-color: #198754;
+        }
+
+        .alert-danger {
+            border-radius: 50px;
+            text-align: center;
+        }
+
+        .login-type-btn {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+        <a class="navbar-brand fw-bold" href="index.html">Smart<span
+                style="color: var(--primary-dark);">Job</span>Finder</a>
+    </nav>
+
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card login-card shadow-lg p-4" style="width: 100%; max-width: 450px;">
+            <h2 class="text-center mb-4 fw-bold" style="font-family: 'Playfair Display';" id="loginTitle">Welcome Back
+            </h2>
+
+            <!-- Login Type Selector -->
+            <div class="text-center mb-4">
+                <div class="btn-group" role="group" style="width: 100%;">
+                    <button type="button" class="btn login-type-btn rounded-pill active btn-primary" id="userLoginBtn"
+                        style="flex: 1;">User Login</button>
+                    <button type="button" class="btn login-type-btn rounded-pill btn-outline-primary" id="adminLoginBtn"
+                        style="flex: 1;">Admin Login</button>
+                </div>
+            </div>
+
+            <!-- General error alert -->
+            <div class="alert alert-danger alert-dismissible fade show" id="generalError" style="display: none;">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span id="generalErrorText"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email</label>
+                    <input type="email" class="form-control rounded-pill input-field" id="loginEmail" required>
+                    <div class="error-message" id="emailError">Please enter a valid email address</div>
+                </div>
+
+                <div class="mb-3 password-field">
+                    <label class="form-label fw-semibold">Password</label>
+                    <input type="password" class="form-control rounded-pill input-field" id="loginPassword" required>
+                    <button type="button" class="password-toggle" id="passwordToggle">
+                        <i class="far fa-eye"></i>
+                    </button>
+                    <div class="error-message" id="passwordError">Please enter your password</div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe">Remember me</label>
+                    </div>
+                    <a href="forgot-password.html" class="text-primary small">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-gradient w-100 rounded-pill py-2">Login</button>
+            </form>
+
+            <p class="text-center mt-3">
+                Don't have an account?
+                <a href="register.html" class="text-primary">Sign up</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+
+        const API_BASE_URL = "http://localhost:8000";  // FastAPI backend runs on 8000
+
+        // Get all form elements
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('loginEmail');
+        const passwordInput = document.getElementById('loginPassword');
+        const passwordToggle = document.getElementById('passwordToggle');
+        const generalError = document.getElementById('generalError');
+        const generalErrorText = document.getElementById('generalErrorText');
+        const userLoginBtn = document.getElementById('userLoginBtn');
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const loginTitle = document.getElementById('loginTitle');
+
+        // Error elements
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+
+        let isAdminLogin = false;
+
+        // Password toggle functionality
+        passwordToggle.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
+        });
+
+        // Login type toggle
+        userLoginBtn.addEventListener('click', function () {
+            isAdminLogin = false;
+            this.classList.add('active', 'btn-primary');
+            this.classList.remove('btn-outline-secondary');
+            adminLoginBtn.classList.remove('active', 'btn-primary');
+            adminLoginBtn.classList.add('btn-outline-primary');
+            loginTitle.textContent = 'Welcome Back';
+            clearForm();
+            hideGeneralError();
+        });
+
+        adminLoginBtn.addEventListener('click', function () {
+            isAdminLogin = true;
+            this.classList.add('active', 'btn-primary');
+            this.classList.remove('btn-outline-primary');
+            userLoginBtn.classList.remove('active', 'btn-primary');
+            userLoginBtn.classList.add('btn-outline-primary');
+            loginTitle.textContent = 'Admin Login';
+            clearForm();
+            hideGeneralError();
+        });
+
+        // Real-time validation
+        emailInput.addEventListener('input', function () {
+            validateEmail();
+            hideGeneralError();
+        });
+
+        passwordInput.addEventListener('input', function () {
+            validatePassword();
+            hideGeneralError();
+        });
+
+        // Validation functions
+        function validateEmail() {
+            const value = emailInput.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (value === '') {
+                showError(emailInput, emailError, 'Please enter your email address');
+                return false;
+            } else if (!emailRegex.test(value)) {
+                showError(emailInput, emailError, 'Please enter a valid email address');
+                return false;
+            } else {
+                showSuccess(emailInput);
+                hideError(emailError);
+                return true;
+            }
+        }
+
+        function validatePassword() {
+            const value = passwordInput.value;
+
+            if (value === '') {
+                showError(passwordInput, passwordError, 'Please enter your password');
+                return false;
+            } else {
+                showSuccess(passwordInput);
+                hideError(passwordError);
+                return true;
+            }
+        }
+
+
+        // Helper functions
+        function showError(input, errorElement, message) {
+            input.classList.remove('success');
+            input.classList.add('error');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function showSuccess(input) {
+            input.classList.remove('error');
+            input.classList.add('success');
+        }
+
+        function hideError(errorElement) {
+            errorElement.style.display = 'none';
+        }
+
+        function showGeneralError(message) {
+            generalErrorText.textContent = message;
+            generalError.style.display = 'block';
+        }
+
+        function hideGeneralError() {
+            generalError.style.display = 'none';
+        }
+
+        function clearForm() {
+            emailInput.value = '';
+            passwordInput.value = '';
+            clearErrors();
+        }
+
+        function clearErrors() {
+            const errorElements = document.querySelectorAll('.error-message');
+            errorElements.forEach(element => {
+                element.style.display = 'none';
+            });
+
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.classList.remove('error', 'success');
+            });
+
+            hideGeneralError();
+        }
+        // Update login form submission
+        loginForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Validate all fields
+            const isEmailValid = validateEmail();
+            const isPasswordValid = validatePassword();
+
+            if (isEmailValid && isPasswordValid) {
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+                const rememberMe = document.getElementById('rememberMe').checked;
+
+                try {
+                    // Show loading state
+                    const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.textContent = 'Logging in...';
+                    submitBtn.disabled = true;
+
+                    console.log('Attempting login for:', email);
+
+                    // Prepare login data
+                    const loginData = {
+                        email: email,
+                        password: password,
+                        is_admin: isAdminLogin,
+                        remember_me: rememberMe
+                    };
+
+                    console.log('Sending login request to:', `${API_BASE_URL}/api/auth/login`);
+
+                    // Send login request
+                    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(loginData)
+                    });
+
+                    console.log('Response status:', response.status);
+
+                    const responseText = await response.text();
+                    console.log('Response text:', responseText);
+
+                    let data;
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (e) {
+                        console.error('JSON parse error:', e);
+                        showGeneralError('Server error. Please try again.');
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                        return;
+                    }
+
+                    if (response.ok) {
+                        console.log('Login successful:', data);
+
+                        // Show success message
+                        alert(data.message || 'Login successful!');
+
+                        // Store user data
+                        localStorage.setItem('access_token', data.access_token);
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('currentUser', JSON.stringify(data.user));
+                        localStorage.setItem('userEmail', data.user.email);
+                        localStorage.setItem('userRole', data.user.role);
+
+                        // Store token expiration based on remember me
+                        if (rememberMe) {
+                            localStorage.setItem('token_expiry', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
+                        } else {
+                            localStorage.setItem('token_expiry', (Date.now() + 24 * 60 * 60 * 1000).toString());
+                        }
+
+                        // Redirect based on role
+                        if (isAdminLogin || data.user.role === 'admin' || data.user.role === 'moderator') {
+                            localStorage.setItem('isAdmin', 'true');
+                            localStorage.setItem('adminName', data.user.full_name);
+                            localStorage.setItem('adminRole', data.user.role);
+
+                            // Redirect to admin dashboard
+                            setTimeout(() => {
+                                window.location.href = 'admin-dashboard.html';
+                            }, 1000);
+
+                        } else {
+                            localStorage.setItem('isAdmin', 'false');
+
+                            // Redirect to user dashboard
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 1000);
+                        }
+
+                    } else {
+                        // Login failed
+                        console.error('Login failed:', data);
+                        showGeneralError(data.detail || 'Login failed. Please check your credentials.');
+                        emailInput.classList.add('error');
+                        passwordInput.classList.add('error');
+
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Login network error:', error);
+                    showGeneralError('Network error. Please check if backend is running.');
+
+                    // Reset button
+                    const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+                    submitBtn.textContent = 'Login';
+                    submitBtn.disabled = false;
+                }
+            }
+        });
+
+        // Initialize form state
+        clearErrors();
+
+        // Add some demo users for testing (remove in production)
+        window.addEventListener('load', function () {
+            const existingUsers = JSON.parse(localStorage.getItem('users') || '{}');
+
+            // Add demo users if none exists
+            if (Object.keys(existingUsers).length === 0) {
+                const demoUsers = {
+                    'demo@example.com': {
+                        fullName: 'Demo User',
+                        email: 'demo@example.com',
+                        password: 'password123',
+                        hasCV: true,
+                        registeredAt: new Date().toISOString()
+                    },
+                    'test@example.com': {
+                        fullName: 'Test User',
+                        email: 'test@example.com',
+                        password: 'test123',
+                        hasCV: false,
+                        registeredAt: new Date().toISOString()
+                    }
+                };
+                localStorage.setItem('users', JSON.stringify(demoUsers));
+
+                // Pre-fill demo credentials for easy testing
+                document.getElementById('loginEmail').value = 'demo@example.com';
+                document.getElementById('loginPassword').value = 'password123';
+            }
+        });
+    </script>
+    
+</body>
+
+</html>

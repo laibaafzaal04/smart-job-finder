@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Smart Job Finder</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .application-modal .modal-content {
+            border-radius: 16px;
+        }
+        .application-details {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border: 4px solid var(--primary-light);
+        }
+        .profile-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="dashboard.html">Smart<span style="color: var(--primary-dark);">Job</span>Finder</a>
+        <div>
+            <a href="dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+            <a href="jobs.html" class="btn btn-outline-primary rounded-pill me-2">Browse Jobs</a>
+            <a href="index.html" class="btn btn-primary rounded-pill" onclick="logout()">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-5">
+
+    <div class="profile-card p-5 shadow-lg rounded-4">
+        <div class="row">
+            <div class="col-md-8">
+                <h2 class="fw-bold" style="font-family: 'Playfair Display';" id="profileName">Your Profile</h2>
+                <p class="text-muted" id="profileHeadline">Complete your profile to get better job matches</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="upload-cv.html?edit=true" class="btn btn-outline-primary rounded-pill" id="editProfileBtn">Edit Profile</a>
+                <a href="notification-settings.html" class="btn btn-outline-primary rounded-pill">
+    <i class="fas fa-bell me-2"></i>Notification Settings
+</a>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-4 text-center">
+                <div class="profile-pic bg-light rounded-circle mx-auto d-flex align-items-center justify-content-center">
+                    <i class="fas fa-user fa-3x text-primary"></i>
+                </div>
+                <h4 class="mt-3" id="userName">Loading...</h4>
+                <p class="text-muted" id="userRole">Job Seeker</p>
+                <div class="mt-3">
+                    <span class="badge bg-primary rounded-pill" id="profileCompletion">0% Complete</span>
+                </div>
+                
+                <div class="mt-4">
+                    <h6 class="fw-bold">Profile Strength</h6>
+                    <div class="progress mt-2" style="height: 8px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <small class="text-muted">Complete your profile for better matches</small>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="fw-bold">Contact Information</h5>
+                        <p class="mb-1"><i class="fas fa-envelope me-2 text-primary"></i> <span id="userEmail">Loading...</span></p>
+                        <p class="mb-1"><i class="fas fa-phone me-2 text-primary"></i> <span id="userPhone">Loading...</span></p>
+                        <p class="mb-0"><i class="fas fa-map-marker-alt me-2 text-primary"></i> <span id="userLocation">Loading...</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="fw-bold">Professional Details</h5>
+                        <p class="mb-1"><strong>Experience:</strong> <span id="userExperience">Loading...</span></p>
+                        <p class="mb-1"><strong>Education:</strong> <span id="userEducation">Loading...</span></p>
+                        <p class="mb-1"><strong>Headline:</strong> <span id="userHeadline">Loading...</span></p>
+                        <p class="mb-0"><strong>CV Status:</strong> 
+                            <span id="cvStatus" class="badge bg-warning">Checking...</span>
+                        </p>
+                        <!-- Add this section in profile.html after the profile info -->
+<div class="card shadow-sm border-0 rounded-4 p-4 mt-4">
+    <h5 class="fw-bold mb-3">
+        <i class="fas fa-download text-primary me-2"></i>Data & Privacy
+    </h5>
+    <p class="text-muted">Download all your data or delete your account</p>
+    <div class="d-flex gap-3">
+        <button class="btn btn-outline-primary rounded-pill" onclick="exportUserData()">
+            <i class="fas fa-file-export me-2"></i>Export My Data
+        </button>
+        <button class="btn btn-outline-danger rounded-pill" onclick="deleteAccount()">
+            <i class="fas fa-user-times me-2"></i>Delete Account
+        </button>
+    </div>
+</div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5 class="fw-bold">About Me</h5>
+                    <p id="userAbout" class="text-muted">
+                        No information provided yet. <a href="upload-cv.html?edit=true" class="text-primary">Add about me section</a>.
+                    </p>
+                </div>
+                
+                <div class="mb-4">
+                    <h5 class="fw-bold">Skills</h5>
+                    <div id="userSkills">
+                        <span class="badge bg-light text-dark me-2 mb-2">No skills added yet</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved Jobs Section -->
+    <div class="mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold">Saved Jobs</h3>
+            <span class="badge bg-primary rounded-pill" id="savedJobsCount">0 jobs</span>
+        </div>
+        
+        <div id="savedJobsList">
+            <!-- Saved jobs will be loaded here dynamically -->
+        </div>
+        
+        <div id="noSavedJobs" class="text-center py-5" style="display: none;">
+            <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No saved jobs yet</h4>
+            <p class="text-muted">Start browsing jobs and save ones you're interested in</p>
+            <a href="jobs.html" class="btn btn-primary rounded-pill">Browse Jobs</a>
+        </div>
+    </div>
+
+    <!-- Applied Jobs Section -->
+    <div class="mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold">Applied Jobs</h3>
+            <span class="badge bg-primary rounded-pill" id="appliedJobsCount">0 jobs</span>
+        </div>
+        
+        <div id="appliedJobsList">
+            <!-- Applied jobs will be loaded here dynamically -->
+        </div>
+        
+        <div id="noAppliedJobs" class="text-center py-5" style="display: none;">
+            <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No applications yet</h4>
+            <p class="text-muted">Start applying to jobs that match your skills</p>
+            <a href="jobs.html" class="btn btn-primary rounded-pill">Browse Jobs</a>
+        </div>
+    </div>
+
+</div>
+
+<!-- Application Details Modal -->
+<div class="modal fade application-modal" id="applicationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Application Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="applicationModalContent">
+                    <!-- Application details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_BASE_URL = "http://localhost:8000";  // Add this constant
+
+// Check if user is logged in
+window.addEventListener('load', async function() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Check if user is admin
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+    if (isAdmin) {
+        window.location.href = 'admin-dashboard.html';
+        return;
+    }
+    
+    // Check if user has completed profile
+    const accessToken = localStorage.getItem('access_token');
+    const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    
+    if (accessToken) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/profile/check-status`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const statusData = await response.json();
+                
+                if (!statusData.profile_completed && !localStorage.getItem('profileSkipped')) {
+                    // Redirect to complete profile
+                    window.location.href = 'upload-cv.html';
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error('Error checking profile status:', error);
+            // Fallback check
+            if (!userData.profileCompleted && !localStorage.getItem('profileSkipped')) {
+                window.location.href = 'upload-cv.html';
+                return;
+            }
+        }
+    } else {
+        // Fallback check
+        if (!userData.profileCompleted && !localStorage.getItem('profileSkipped')) {
+            window.location.href = 'upload-cv.html';
+            return;
+        }
+    }
+    
+    // Load profile data
+    await loadProfileData();
+    
+    // Load saved jobs
+    loadSavedJobs();
+    
+    // Load applied jobs
+    loadAppliedJobs();
+});
+
+// Update the loadProfileData function in profile.html
+async function loadProfileData() {
+    const accessToken = localStorage.getItem('access_token');
+    const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    
+    try {
+        if (accessToken) {
+            // Try to get profile from backend
+            const response = await fetch(`${API_BASE_URL}/api/profile/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const profileData = await response.json();
+                console.log('Profile data from backend:', profileData);
+                
+                // Update profile information from backend
+                updateProfileUI(profileData);
+                
+                // Update local storage
+                localStorage.setItem('currentUser', JSON.stringify({
+                    ...userData,
+                    ...profileData,
+                    profileCompleted: true
+                }));
+                localStorage.setItem('profileCompleted', 'true');
+                
+                // Also update users collection in local storage
+                const users = JSON.parse(localStorage.getItem('users') || '{}');
+                const userEmail = profileData.email;
+                if (userEmail) {
+                    users[userEmail] = {
+                        ...users[userEmail],
+                        fullName: profileData.full_name,
+                        email: profileData.email,
+                        phone: profileData.phone,
+                        location: profileData.location,
+                        headline: profileData.headline,
+                        about: profileData.about,
+                        education: profileData.education,
+                        experience: profileData.experience,
+                        skills: profileData.skills,
+                        hasCV: profileData.cv_uploaded,
+                        profileCompleted: true,
+                        profileUpdatedAt: new Date().toISOString()
+                    };
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+                
+                return;
+            }
+        }
+        
+        // Fallback to local storage if backend fails
+        console.log('Using local storage data');
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        const userEmail = userData.email || localStorage.getItem('userEmail');
+        
+        let profileData = userData;
+        if (userEmail && users[userEmail]) {
+            profileData = { ...profileData, ...users[userEmail] };
+        }
+        
+        updateProfileUI(profileData);
+        
+    } catch (error) {
+        console.error('Error loading profile data:', error);
+        
+        // Fallback to local storage
+        const users = JSON.parse(localStorage.getItem('users') || '{}');
+        const userEmail = userData.email || localStorage.getItem('userEmail');
+        
+        let profileData = userData;
+        if (userEmail && users[userEmail]) {
+            profileData = { ...profileData, ...users[userEmail] };
+        }
+        
+        updateProfileUI(profileData);
+    }
+}
+
+// Helper function to update UI
+function updateProfileUI(profileData) {
+    console.log('Updating UI with profile data:', profileData);
+    
+    // Use backend field names (full_name) or frontend field names (fullName)
+    const fullName = profileData.full_name || profileData.fullName;
+    const email = profileData.email;
+    const phone = profileData.phone;
+    const location = profileData.location;
+    const headline = profileData.headline;
+    const about = profileData.about;
+    const education = profileData.education;
+    const experience = profileData.experience;
+    const skills = profileData.skills || [];
+    const cvUploaded = profileData.cv_uploaded || profileData.hasCV || profileData.cvUploaded;
+    
+    // Update profile information
+    if (fullName) {
+        document.getElementById('profileName').textContent = fullName + "'s Profile";
+        document.getElementById('userName').textContent = fullName;
+    } else {
+        document.getElementById('profileName').textContent = "Your Profile";
+        document.getElementById('userName').textContent = "User";
+    }
+    
+    if (headline) {
+        document.getElementById('profileHeadline').textContent = headline;
+        document.getElementById('userHeadline').textContent = headline;
+    } else {
+        document.getElementById('profileHeadline').textContent = 'Complete your profile to get better job matches';
+        document.getElementById('userHeadline').textContent = 'Not specified';
+    }
+    
+    if (email) {
+        document.getElementById('userEmail').textContent = email;
+    } else {
+        document.getElementById('userEmail').textContent = 'Not provided';
+    }
+    
+    if (phone) {
+        document.getElementById('userPhone').textContent = phone;
+    } else {
+        document.getElementById('userPhone').textContent = 'Not provided';
+    }
+    
+    if (location) {
+        document.getElementById('userLocation').textContent = location;
+    } else {
+        document.getElementById('userLocation').textContent = 'Not provided';
+    }
+    
+    if (experience) {
+        // Convert experience value to readable format
+        const experienceMap = {
+            'entry': 'Entry Level (0-2 years)',
+            'mid': 'Mid Level (2-5 years)',
+            'senior': 'Senior Level (5+ years)',
+            'executive': 'Executive Level'
+        };
+        document.getElementById('userExperience').textContent = experienceMap[experience] || experience;
+    } else {
+        document.getElementById('userExperience').textContent = 'Not specified';
+    }
+    
+    if (education) {
+        // Convert education value to readable format
+        const educationMap = {
+            'high_school': 'High School',
+            'associate': 'Associate Degree',
+            'bachelor': "Bachelor's Degree",
+            'master': "Master's Degree",
+            'phd': 'PhD',
+            'other': 'Other'
+        };
+        document.getElementById('userEducation').textContent = educationMap[education] || education;
+    } else {
+        document.getElementById('userEducation').textContent = 'Not specified';
+    }
+    
+    // Update CV status
+    const hasCV = cvUploaded || localStorage.getItem('hasCV') === 'true';
+    if (hasCV) {
+        document.getElementById('cvStatus').textContent = 'Uploaded';
+        document.getElementById('cvStatus').className = 'badge bg-success';
+    } else {
+        document.getElementById('cvStatus').textContent = 'Not Uploaded';
+        document.getElementById('cvStatus').className = 'badge bg-warning';
+    }
+    
+    // Update about section
+    if (about) {
+        document.getElementById('userAbout').textContent = about;
+    } else {
+        document.getElementById('userAbout').innerHTML = 'No information provided yet. <a href="upload-cv.html?edit=true" class="text-primary">Add about me section</a>.';
+    }
+    
+    // Update skills
+    if (skills && Array.isArray(skills) && skills.length > 0) {
+        const skillsContainer = document.getElementById('userSkills');
+        skillsContainer.innerHTML = '';
+        skills.forEach(skill => {
+            if (skill.trim() !== '') {
+                const skillBadge = document.createElement('span');
+                skillBadge.className = 'badge bg-light text-dark me-2 mb-2';
+                skillBadge.textContent = skill;
+                skillsContainer.appendChild(skillBadge);
+            }
+        });
+    } else {
+        document.getElementById('userSkills').innerHTML = '<span class="badge bg-light text-dark me-2 mb-2">No skills added yet</span>';
+    }
+    
+    // Calculate and update profile completion
+    updateProfileCompletion({
+        fullName: fullName,
+        email: email,
+        phone: phone,
+        location: location,
+        experience: experience,
+        education: education,
+        skills: skills,
+        about: about,
+        headline: headline
+    });
+}
+
+function updateProfileCompletion(profileData) {
+    let completion = 0;
+    const totalFields = 9; // name, email, phone, location, experience, education, skills, about, headline
+    
+    if (profileData.fullName) completion++;
+    if (profileData.email) completion++;
+    if (profileData.phone) completion++;
+    if (profileData.location) completion++;
+    if (profileData.experience) completion++;
+    if (profileData.education) completion++;
+    if (profileData.skills && profileData.skills.length > 0) completion++;
+    if (profileData.about) completion++;
+    if (profileData.headline) completion++;
+    
+    const percentage = Math.round((completion / totalFields) * 100);
+    document.getElementById('profileCompletion').textContent = percentage + '% Complete';
+    
+    const progressBar = document.querySelector('.progress-bar');
+    progressBar.style.width = percentage + '%';
+    progressBar.setAttribute('aria-valuenow', percentage);
+}
+
+function loadSavedJobs() {
+    const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    const savedJobsList = document.getElementById('savedJobsList');
+    const noSavedJobs = document.getElementById('noSavedJobs');
+    const savedJobsCount = document.getElementById('savedJobsCount');
+    
+    savedJobsCount.textContent = savedJobs.length + ' jobs';
+    
+    if (savedJobs.length === 0) {
+        savedJobsList.style.display = 'none';
+        noSavedJobs.style.display = 'block';
+        return;
+    }
+    
+    noSavedJobs.style.display = 'none';
+    savedJobsList.style.display = 'block';
+    savedJobsList.innerHTML = '';
+    
+    savedJobs.forEach(job => {
+        const jobElement = document.createElement('div');
+        jobElement.className = 'saved-job p-4 rounded-4 shadow-sm mb-3';
+        jobElement.innerHTML = `
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="fw-bold mb-1">${job.title}</h5>
+                    <p class="text-muted mb-1">${job.company} • ${job.location}</p>
+                    <small class="text-muted">Saved on ${new Date(job.savedAt).toLocaleDateString()}</small>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="apply-job.html?id=${job.id}" class="btn btn-outline-primary rounded-pill btn-sm me-2">Apply Now</a>
+                    <button class="btn btn-outline-danger rounded-pill btn-sm unsave-btn" data-job-id="${job.id}">Remove</button>
+                </div>
+            </div>
+        `;
+        savedJobsList.appendChild(jobElement);
+    });
+    
+    // Add event listeners to unsave buttons
+    document.querySelectorAll('.unsave-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const jobId = this.dataset.jobId;
+            unsaveJob(jobId);
+        });
+    });
+}
+
+function loadAppliedJobs() {
+    const appliedJobs = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
+    const appliedJobsList = document.getElementById('appliedJobsList');
+    const noAppliedJobs = document.getElementById('noAppliedJobs');
+    const appliedJobsCount = document.getElementById('appliedJobsCount');
+    
+    appliedJobsCount.textContent = appliedJobs.length + ' jobs';
+    
+    if (appliedJobs.length === 0) {
+        appliedJobsList.style.display = 'none';
+        noAppliedJobs.style.display = 'block';
+        return;
+    }
+    
+    noAppliedJobs.style.display = 'none';
+    appliedJobsList.style.display = 'block';
+    appliedJobsList.innerHTML = '';
+    
+    appliedJobs.forEach(job => {
+        const statusClass = job.status === 'pending' ? 'bg-warning' : 
+                           job.status === 'reviewed' ? 'bg-info' :
+                           job.status === 'accepted' ? 'bg-success' : 'bg-danger';
+        
+        const statusText = job.status === 'pending' ? 'Under Review' :
+                          job.status === 'reviewed' ? 'Being Reviewed' :
+                          job.status === 'accepted' ? 'Accepted' : 'Not Selected';
+        
+        const jobElement = document.createElement('div');
+        jobElement.className = 'applied-job p-4 rounded-4 shadow-sm mb-3';
+        jobElement.innerHTML = `
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="fw-bold mb-1">${job.jobTitle}</h5>
+                    <p class="text-muted mb-1">${job.company} • ${job.location}</p>
+                    <small class="text-muted">Applied on ${new Date(job.appliedAt).toLocaleDateString()}</small>
+                </div>
+                <div class="col-md-4">
+                    <span class="badge ${statusClass}">${statusText}</span>
+                    ${job.status === 'accepted' ? 
+                        '<div class="mt-1"><small class="text-success"><i class="fas fa-envelope me-1"></i>Contact info sent</small></div>' : 
+                        ''}
+                </div>
+                <div class="col-md-2 text-end">
+                    <button class="btn btn-outline-primary rounded-pill btn-sm view-application" data-application-id="${job.id}">View</button>
+                </div>
+            </div>
+        `;
+        appliedJobsList.appendChild(jobElement);
+    });
+    
+    // Add event listeners to view application buttons
+    document.querySelectorAll('.view-application').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const applicationId = this.dataset.applicationId;
+            viewApplication(applicationId);
+        });
+    });
+}
+
+function viewApplication(applicationId) {
+    const appliedJobs = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
+    const application = appliedJobs.find(app => app.id === applicationId);
+    
+    if (application) {
+        const modalContent = `
+            <div class="application-details mb-4">
+                <h6>${application.jobTitle} at ${application.company}</h6>
+                <p><strong>Location:</strong> ${application.location}</p>
+                <p><strong>Applied:</strong> ${new Date(application.appliedAt).toLocaleDateString()}</p>
+                <p><strong>Status:</strong> <span class="badge ${application.status === 'pending' ? 'bg-warning' : application.status === 'reviewed' ? 'bg-info' : application.status === 'accepted' ? 'bg-success' : 'bg-danger'}">${application.status}</span></p>
+            </div>
+            <div class="mb-4">
+                <h6>Applicant Information</h6>
+                <p><strong>Name:</strong> ${application.applicantName}</p>
+                <p><strong>Email:</strong> ${application.applicantEmail}</p>
+                <p><strong>Phone:</strong> ${application.applicantPhone}</p>
+                ${application.applicantPosition ? `<p><strong>Current Position:</strong> ${application.applicantPosition}</p>` : ''}
+            </div>
+            <div class="mb-4">
+                <h6>Cover Letter</h6>
+                <div class="border p-3 rounded bg-light">
+                    ${application.coverLetter || 'No cover letter provided'}
+                </div>
+            </div>
+            <div class="mb-3">
+                <h6>Additional Information</h6>
+                <p><strong>Resume:</strong> ${application.resumeFileName}</p>
+                ${application.portfolioUrl ? `<p><strong>Portfolio:</strong> <a href="${application.portfolioUrl}" target="_blank">${application.portfolioUrl}</a></p>` : ''}
+                ${application.linkedinUrl ? `<p><strong>LinkedIn:</strong> <a href="${application.linkedinUrl}" target="_blank">${application.linkedinUrl}</a></p>` : ''}
+            </div>
+        `;
+        
+        document.getElementById('applicationModalContent').innerHTML = modalContent;
+        const applicationModal = new bootstrap.Modal(document.getElementById('applicationModal'));
+        applicationModal.show();
+    }
+}
+
+function unsaveJob(jobId) {
+    const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    const updatedJobs = savedJobs.filter(job => job.id !== jobId);
+    localStorage.setItem('savedJobs', JSON.stringify(updatedJobs));
+    
+    // Reload saved jobs
+    loadSavedJobs();
+}
+
+// Function to sync profile completion status
+async function syncProfileCompletionStatus() {
+    const accessToken = localStorage.getItem('access_token');
+    
+    if (!accessToken) return false;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/profile/check-status`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const statusData = await response.json();
+            
+            // Update local storage
+            localStorage.setItem('profileCompleted', statusData.profile_completed ? 'true' : 'false');
+            
+            // Update currentUser
+            const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            userData.profileCompleted = statusData.profile_completed;
+            localStorage.setItem('currentUser', JSON.stringify(userData));
+            
+            return statusData.profile_completed;
+        }
+    } catch (error) {
+        console.error('Error syncing profile status:', error);
+    }
+    
+    return false;
+}
+
+function logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('profileCompleted');
+    window.location.href = 'index.html';
+}
+// Add to profile.html script section
+
+async function exportUserData() {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+        alert('Please login to export data');
+        return;
+    }
+
+    if (!confirm('This will download all your data including profile, applications, and saved jobs. Continue?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/user/export-data`, {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Accept': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Create downloadable JSON file
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `smartjobfinder-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert('✅ Your data has been downloaded successfully!');
+        } else {
+            throw new Error('Failed to export data');
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('❌ Error exporting data: ' + error.message);
+    }
+}
+
+function deleteAccount() {
+    alert('⚠️ Account deletion feature will be implemented soon. Please contact support@smartjobfinder.com to delete your account.');
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

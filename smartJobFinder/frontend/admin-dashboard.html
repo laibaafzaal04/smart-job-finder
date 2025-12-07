@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard – SmartJobFinder</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Garamond&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .admin-stat-card {
+            border-left: 4px solid var(--primary);
+        }
+
+        .quick-action-btn {
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .admin-stat-card {
+            border-left: 4px solid var(--primary);
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+
+        .admin-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(13, 110, 253, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .stat-card h2 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card small {
+            font-size: 0.85rem;
+        }
+
+        /* Make the row take full width */
+        .row.g-4 {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .col-md-4 {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold">Smart<span style="color: var(--primary-dark);">Job</span>Finder </a>
+            <div>
+                <span class="me-3 text-muted" id="adminWelcome">Welcome, Admin</span>
+                <a href="add-job.html" class="btn btn-outline-primary rounded-pill me-2">Add Job</a>
+                <a href="admin-jobs.html" class="btn btn-outline-primary rounded-pill me-2">Manage Jobs</a>
+                <a href="admin-users.html" class="btn btn-outline-primary rounded-pill me-2">Manage Applicants</a>
+                <a href="index.html" class="btn btn-primary rounded-pill" onclick="adminLogout()">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold" style="font-family:'Playfair Display';">Admin Dashboard</h2>
+            <p class="text-muted">Manage your job portal efficiently</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="stat-card p-4 rounded-4 shadow-sm text-center admin-stat-card">
+                    <div class="stat-icon mb-3">
+                        <i class="fas fa-briefcase fa-2x text-primary"></i>
+                    </div>
+                    <h2 class="fw-bold" id="totalJobs">0</h2>
+                    <p class="text-muted">Total Jobs Posted</p>
+                    <small class="text-success" id="activeJobsText"><i class="fas fa-chart-line"></i> 0 active</small>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card p-4 rounded-4 shadow-sm text-center admin-stat-card">
+                    <div class="stat-icon mb-3">
+                        <i class="fas fa-users fa-2x text-primary"></i>
+                    </div>
+                    <h2 class="fw-bold" id="uniqueApplicants">0</h2>
+                    <p class="text-muted">Unique Applicants</p>
+                    <small class="text-success" id="applicantsText"><i class="fas fa-user-check"></i> Applied to your
+                        jobs</small>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card p-4 rounded-4 shadow-sm text-center admin-stat-card">
+                    <div class="stat-icon mb-3">
+                        <i class="fas fa-file-alt fa-2x text-primary"></i>
+                    </div>
+                    <h2 class="fw-bold" id="pendingApplications">0</h2>
+                    <p class="text-muted">Pending Applications</p>
+                    <small class="text-warning" id="pendingText"><i class="fas fa-clock"></i> Needs review</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="row mt-5">
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0 rounded-4 p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0">Recent Activity</h4>
+                        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="loadRecentActivity()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="recentActivity">
+                        <!-- Loading spinner -->
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading recent activity...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <!-- Quick Actions (keep as is) -->
+                <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
+                    <h4 class="fw-bold mb-4">Quick Actions</h4>
+                    <div class="d-grid gap-3">
+                        <a href="add-job.html" class="btn btn-primary rounded-pill quick-action-btn py-3">
+                            <i class="fas fa-plus me-2"></i>Add New Job
+                        </a>
+                        <a href="admin-jobs.html" class="btn btn-outline-primary rounded-pill quick-action-btn py-3">
+                            <i class="fas fa-briefcase me-2"></i>Manage Jobs
+                        </a>
+                        <a href="admin-users.html" class="btn btn-outline-success rounded-pill quick-action-btn py-3">
+                            <i class="fas fa-users me-2"></i>Manage Applicants
+                        </a>
+                        <a href="index.html" class="btn btn-outline-danger rounded-pill quick-action-btn py-3"
+                            onclick="adminLogout()">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://localhost:8000";
+
+        // Admin authentication check
+        window.addEventListener('load', async function () {
+            const isAdmin = localStorage.getItem('isAdmin');
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+
+            if (!isLoggedIn || !isAdmin) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Display admin name if available
+            const adminName = localStorage.getItem('adminName');
+            if (adminName) {
+                document.getElementById('adminWelcome').textContent = `Welcome, ${adminName}`;
+            }
+
+            // Load dashboard stats
+            await loadDashboardStats();
+
+            // Load recent activity
+            await loadRecentActivity();
+        });
+
+        async function loadDashboardStats() {
+            const accessToken = localStorage.getItem('access_token');
+
+            if (!accessToken) {
+                console.error('No access token found');
+                loadStatsFromCache();
+                return;
+            }
+
+            try {
+                // Fetch comprehensive admin dashboard stats
+                const response = await fetch(`${API_BASE_URL}/api/admin/dashboard-stats`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const stats = await response.json();
+                    console.log('Admin dashboard stats:', stats);
+
+                    // Update all stats
+                    document.getElementById('totalJobs').textContent = stats.total_jobs || 0;
+                    document.getElementById('uniqueApplicants').textContent = stats.unique_applicants || 0;
+                    document.getElementById('pendingApplications').textContent = stats.pending_applications || 0;
+
+                    // Update the active jobs text
+                    const activeJobsText = document.getElementById('activeJobsText');
+                    if (stats.total_jobs > 0) {
+                        const activePercentage = Math.round((stats.active_jobs / stats.total_jobs) * 100);
+                        activeJobsText.innerHTML = `<i class="fas fa-chart-line"></i> ${stats.active_jobs || 0} active (${activePercentage}%)`;
+                    } else {
+                        activeJobsText.innerHTML = `<i class="fas fa-chart-line"></i> No jobs yet`;
+                    }
+
+                    // Update unique applicants text
+                    const applicantsText = document.getElementById('applicantsText');
+                    if (stats.unique_applicants > 0) {
+                        applicantsText.innerHTML = `<i class="fas fa-user-check"></i> ${stats.unique_applicants} applied to your jobs`;
+                    } else {
+                        applicantsText.innerHTML = `<i class="fas fa-user-check"></i> No applicants yet`;
+                    }
+
+                    // Update pending applications text
+                    const pendingText = document.getElementById('pendingText');
+                    if (stats.pending_applications > 0) {
+                        pendingText.innerHTML = `<i class="fas fa-clock"></i> ${stats.pending_applications} need review`;
+                    } else {
+                        pendingText.innerHTML = `<i class="fas fa-check"></i> All caught up`;
+                    }
+
+                } else {
+                    console.error('Failed to fetch admin stats:', response.status);
+                    // Fallback to separate endpoints
+                    await loadStatsFromSeparateEndpoints();
+                }
+
+            } catch (error) {
+                console.error('Error loading admin stats:', error);
+                loadStatsFromCache();
+            }
+        }
+
+        async function loadStatsFromSeparateEndpoints() {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) return;
+
+            try {
+                // Load job statistics
+                const jobsResponse = await fetch(`${API_BASE_URL}/api/jobs/admin/stats/count`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (jobsResponse.ok) {
+                    const jobStats = await jobsResponse.json();
+                    document.getElementById('totalJobs').textContent = jobStats.total_jobs || 0;
+
+                    // Update active jobs text
+                    if (jobStats.total_jobs > 0) {
+                        const activePercentage = Math.round((jobStats.active_jobs / jobStats.total_jobs) * 100);
+                        document.getElementById('activeJobsText').innerHTML =
+                            `<i class="fas fa-chart-line"></i> ${jobStats.active_jobs || 0} active (${activePercentage}%)`;
+                    }
+                }
+
+                // Load application statistics
+                const appsResponse = await fetch(`${API_BASE_URL}/api/applications/admin/stats`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (appsResponse.ok) {
+                    const appStats = await appsResponse.json();
+                    document.getElementById('pendingApplications').textContent = appStats.pending_applications || 0;
+
+                    // Update pending text
+                    if (appStats.pending_applications > 0) {
+                        document.getElementById('pendingText').innerHTML =
+                            `<i class="fas fa-clock"></i> ${appStats.pending_applications} need review`;
+                    }
+                }
+
+                // For unique applicants, we need to calculate from applications
+                // We'll load all applications and count unique users
+                await calculateUniqueApplicants();
+
+            } catch (error) {
+                console.error('Error loading separate stats:', error);
+                loadStatsFromCache();
+            }
+        }
+
+        async function calculateUniqueApplicants() {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) return;
+
+            try {
+                // Get all applications for admin's jobs
+                const response = await fetch(`${API_BASE_URL}/api/applications/admin/applicants`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const applications = await response.json();
+
+                    // Count unique users
+                    const uniqueUserIds = new Set();
+                    applications.forEach(app => {
+                        if (app.user_id) {
+                            uniqueUserIds.add(app.user_id);
+                        }
+                    });
+
+                    const uniqueCount = uniqueUserIds.size;
+                    document.getElementById('uniqueApplicants').textContent = uniqueCount;
+
+                    // Update applicants text
+                    if (uniqueCount > 0) {
+                        document.getElementById('applicantsText').innerHTML =
+                            `<i class="fas fa-user-check"></i> ${uniqueCount} applied to your jobs`;
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error calculating unique applicants:', error);
+                // Set to 0 if we can't calculate
+                document.getElementById('uniqueApplicants').textContent = 0;
+            }
+        }
+
+        function loadStatsFromCache() {
+            console.log('Loading stats from cache...');
+
+            const adminEmail = localStorage.getItem('adminEmail');
+            const cachedJobs = JSON.parse(localStorage.getItem('cachedJobs') || '[]');
+
+            // Filter jobs by current admin
+            const myJobs = cachedJobs.filter(job => job.posted_by_email === adminEmail);
+            const totalJobs = myJobs.length;
+            const activeJobs = myJobs.filter(job => job.status === 'active').length;
+
+            // Get applications from cache
+            const applications = JSON.parse(localStorage.getItem('applications') || '[]');
+            const adminJobIds = myJobs.map(job => job.id || job._id);
+            const adminApplications = applications.filter(app =>
+                adminJobIds.includes(app.job_id) || adminJobIds.includes(app.jobId)
+            );
+
+            const pendingApplications = adminApplications.filter(app =>
+                app.status === 'pending' || !app.status
+            ).length;
+
+            // Calculate unique applicants
+            const uniqueApplicantIds = new Set();
+            adminApplications.forEach(app => {
+                if (app.user_id) uniqueApplicantIds.add(app.user_id);
+                if (app.userId) uniqueApplicantIds.add(app.userId);
+            });
+            const uniqueApplicants = uniqueApplicantIds.size;
+
+            // Update UI
+            document.getElementById('totalJobs').textContent = totalJobs;
+            document.getElementById('uniqueApplicants').textContent = uniqueApplicants;
+            document.getElementById('pendingApplications').textContent = pendingApplications;
+
+            // Update stat card text
+            if (totalJobs > 0) {
+                const activePercentage = Math.round((activeJobs / totalJobs) * 100);
+                document.getElementById('activeJobsText').innerHTML =
+                    `<i class="fas fa-chart-line"></i> ${activeJobs} active (${activePercentage}%)`;
+            }
+
+            if (uniqueApplicants > 0) {
+                document.getElementById('applicantsText').innerHTML =
+                    `<i class="fas fa-user-check"></i> ${uniqueApplicants} applied to your jobs`;
+            }
+
+            if (pendingApplications > 0) {
+                document.getElementById('pendingText').innerHTML =
+                    `<i class="fas fa-clock"></i> ${pendingApplications} need review`;
+            }
+
+            console.log('Cache stats loaded:', { totalJobs, activeJobs, uniqueApplicants, pendingApplications });
+        }
+
+        async function loadRecentActivity() {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) return;
+
+            try {
+                // Get recent applications
+                const response = await fetch(`${API_BASE_URL}/api/applications/admin/applicants?limit=5`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const activityContainer = document.getElementById('recentActivity');
+
+                if (response.ok) {
+                    const applications = await response.json();
+
+                    if (applications.length === 0) {
+                        activityContainer.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No recent activity</h5>
+                        <p class="text-muted">When applicants apply to your jobs, they'll appear here</p>
+                    </div>
+                `;
+                        return;
+                    }
+
+                    // Create activity list
+                    let activityHTML = '<div class="list-group list-group-flush">';
+
+                    applications.slice(0, 5).forEach((app, index) => {
+                        const timeAgo = getTimeAgo(app.applied_at);
+                        const statusBadge = getStatusBadge(app.status);
+
+                        activityHTML += `
+                    <div class="list-group-item border-0 px-0 ${index < applications.length - 1 ? 'mb-3' : ''}">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white"
+                                    style="width: 40px; height: 40px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-0">New application for <strong>${app.job_title || 'Untitled Job'}</strong></h6>
+                                <small class="text-muted">${app.user_name || 'Unknown'} • ${timeAgo}</small>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                    </div>
+                `;
+                    });
+
+                    activityHTML += '</div>';
+                    activityContainer.innerHTML = activityHTML;
+
+                } else {
+                    activityContainer.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Could not load recent activity. Please try again later.
+                </div>
+            `;
+                }
+
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+                document.getElementById('recentActivity').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Error loading recent activity: ${error.message}
+            </div>
+        `;
+            }
+        }
+
+        function getTimeAgo(dateString) {
+            if (!dateString) return 'Recently';
+
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 60) {
+                return `${diffMins} minutes ago`;
+            } else if (diffHours < 24) {
+                return `${diffHours} hours ago`;
+            } else if (diffDays < 7) {
+                return `${diffDays} days ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+
+        function getStatusBadge(status) {
+            const badges = {
+                'pending': '<span class="badge bg-warning">Pending</span>',
+                'reviewed': '<span class="badge bg-info">Reviewed</span>',
+                'shortlisted': '<span class="badge bg-primary">Shortlisted</span>',
+                'accepted': '<span class="badge bg-success">Accepted</span>',
+                'rejected': '<span class="badge bg-danger">Rejected</span>'
+            };
+
+            return badges[status] || '<span class="badge bg-secondary">Unknown</span>';
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('isAdmin');
+            localStorage.removeItem('adminEmail');
+            localStorage.removeItem('adminName');
+            localStorage.removeItem('adminRole');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('access_token');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

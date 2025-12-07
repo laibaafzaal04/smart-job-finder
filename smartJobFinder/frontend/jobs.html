@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs - Smart Job Finder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="index.html">Smart<span style="color: var(--primary-dark);">Job</span>Finder</a>
+            <div id="navAuthButtons"></div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="search-filters">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="filter-group">
+                                <label class="form-label fw-semibold">Job Title or Keyword</label>
+                                <input type="text" class="form-control rounded-pill" id="jobSearch" placeholder="e.g., Software Engineer">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="filter-group">
+                                <label class="form-label fw-semibold">Location</label>
+                                <input type="text" class="form-control rounded-pill" id="locationFilter" placeholder="e.g., New York">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="filter-group">
+                                <label class="form-label fw-semibold">Job Type</label>
+                                <select class="form-select rounded-pill" id="jobTypeFilter">
+                                    <option value="">All Types</option>
+                                    <option value="Full-Time">Full-Time</option>
+                                    <option value="Part-Time">Part-Time</option>
+                                    <option value="Contract">Contract</option>
+                                    <option value="Internship">Internship</option>
+                                    <option value="Remote">Remote</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="filter-group">
+                                <label class="form-label fw-semibold">Experience Level</label>
+                                <select class="form-select rounded-pill" id="experienceFilter">
+                                    <option value="">All Levels</option>
+                                    <option value="entry">Entry Level</option>
+                                    <option value="mid">Mid Level</option>
+                                    <option value="senior">Senior Level</option>
+                                    <option value="executive">Executive</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="filter-group">
+                                <label class="form-label fw-semibold">Skills</label>
+                                <input type="text" class="form-control rounded-pill" id="skillsFilter" placeholder="e.g., React, Python">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button class="btn btn-primary rounded-pill me-2" id="applyFilters">Apply Filters</button>
+                            <button class="btn btn-outline-secondary rounded-pill" id="resetFilters">Reset Filters</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm p-4 h-100">
+                    <h5 class="fw-bold mb-3">Search Tips</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-lightbulb text-warning me-2"></i> Use specific job titles</li>
+                        <li class="mb-2"><i class="fas fa-lightbulb text-warning me-2"></i> Include skills you have</li>
+                        <li class="mb-2"><i class="fas fa-lightbulb text-warning me-2"></i> Try different locations</li>
+                        <li class="mb-0"><i class="fas fa-lightbulb text-warning me-2"></i> Save jobs to apply later</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 id="jobsCount">Loading jobs...</h3>
+            <div>
+                <span class="me-3">Sort by:</span>
+                <select class="form-select form-select-sm d-inline-block w-auto rounded-pill" id="sortBy">
+                    <option value="newest">Newest First</option>
+                    <option value="relevance">Relevance</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row g-4" id="jobsContainer"></div>
+
+        <div class="text-center mt-5" id="loadMoreContainer" style="display: none;">
+            <button class="btn btn-outline-primary rounded-pill px-4" id="loadMoreBtn">Load More Jobs</button>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE_URL = "http://localhost:8000";
+        let currentJobs = [];
+        let displayedJobs = 8;
+        let totalJobs = 0;
+        let userSavedJobs = new Set();
+
+        window.addEventListener('load', async function () {
+            updateNavbar();
+            await initializeSavedJobs();
+            await loadJobsFromBackend();
+            setupEventListeners();
+        });
+
+        function updateNavbar() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const navAuthButtons = document.getElementById('navAuthButtons');
+
+            if (isLoggedIn) {
+                navAuthButtons.innerHTML = `
+                    <a href="dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+                    <a href="profile.html" class="btn btn-outline-primary rounded-pill me-2">Profile</a>
+                    <a href="index.html" class="btn btn-primary rounded-pill" onclick="logout()">Logout</a>
+                `;
+            } else {
+                navAuthButtons.innerHTML = `
+                    <a href="login.html" class="btn btn-outline-primary rounded-pill me-2">Login</a>
+                    <a href="register.html" class="btn btn-primary rounded-pill">Sign Up</a>
+                `;
+            }
+        }
+
+        async function initializeSavedJobs() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (!isLoggedIn) {
+                userSavedJobs = new Set();
+                return;
+            }
+
+            try {
+                const accessToken = localStorage.getItem('access_token');
+                if (!accessToken) return;
+
+                const response = await fetch(`${API_BASE_URL}/api/saved-jobs/`, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const savedJobs = await response.json();
+                    savedJobs.forEach(job => {
+                        userSavedJobs.add(job.job_id);
+                    });
+                    localStorage.setItem('savedJobs', JSON.stringify(savedJobs));
+                }
+            } catch (error) {
+                console.error('Error loading saved jobs:', error);
+                const localSavedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+                localSavedJobs.forEach(job => {
+                    userSavedJobs.add(job.job_id || job.id);
+                });
+            }
+        }
+
+        async function loadJobsFromBackend(filters = {}) {
+            try {
+                document.getElementById('jobsCount').textContent = 'Loading jobs...';
+
+                const params = new URLSearchParams();
+                if (filters.search) params.append('search', filters.search);
+                if (filters.location) params.append('location', filters.location);
+                if (filters.jobType) params.append('job_type', filters.jobType);
+                if (filters.experienceLevel) params.append('experience', filters.experienceLevel);
+                
+                const skillsInput = document.getElementById('skillsFilter');
+                if (skillsInput && skillsInput.value) {
+                    params.append('skills', skillsInput.value);
+                }
+
+                const response = await fetch(`${API_BASE_URL}/api/user/search-jobs?${params.toString()}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentJobs = data.jobs;
+                    totalJobs = data.total;
+
+                    document.getElementById('jobsCount').textContent = 
+                        `${data.total} Job${data.total !== 1 ? 's' : ''} Found (Page ${data.page} of ${data.pages})`;
+
+                    displayJobs(currentJobs);
+                    localStorage.setItem('cachedJobs', JSON.stringify(data.jobs));
+                } else {
+                    throw new Error('Failed to load jobs from server');
+                }
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+                document.getElementById('jobsCount').textContent = 'Error loading jobs';
+
+                const cachedJobs = JSON.parse(localStorage.getItem('cachedJobs') || '[]');
+                if (cachedJobs.length > 0) {
+                    currentJobs = cachedJobs;
+                    totalJobs = cachedJobs.length;
+                    displayJobs(currentJobs);
+                }
+            }
+        }
+
+        function displayJobs(jobs) {
+            const jobsContainer = document.getElementById('jobsContainer');
+            const jobsCount = document.getElementById('jobsCount');
+            const loadMoreContainer = document.getElementById('loadMoreContainer');
+
+            if (!jobsCount.textContent.includes('Found')) {
+                jobsCount.textContent = `${jobs.length} Job${jobs.length !== 1 ? 's' : ''} Found`;
+            }
+
+            jobsContainer.innerHTML = '';
+
+            if (jobs.length === 0) {
+                jobsContainer.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No jobs found</h4>
+                        <p class="text-muted">Try adjusting your search criteria</p>
+                        <button class="btn btn-primary rounded-pill" onclick="resetFilters()">Reset Filters</button>
+                    </div>
+                `;
+                loadMoreContainer.style.display = 'none';
+                return;
+            }
+
+            const jobsToDisplay = jobs.slice(0, displayedJobs);
+
+            jobsToDisplay.forEach(job => {
+                const jobElement = document.createElement('div');
+                jobElement.className = 'col-md-6';
+                jobElement.innerHTML = createJobCardHTML(job);
+                jobsContainer.appendChild(jobElement);
+            });
+
+            if (jobs.length > displayedJobs) {
+                loadMoreContainer.style.display = 'block';
+            } else {
+                loadMoreContainer.style.display = 'none';
+            }
+
+            initializeSaveButtons();
+        }
+
+        function createJobCardHTML(job) {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const jobId = job.id || job._id;
+            const isSaved = userSavedJobs.has(jobId);
+            const saveButtonText = isSaved ? 'Saved ✓' : 'Save Job';
+            const saveButtonClass = isSaved ? 'save-btn saved' : 'save-btn';
+
+            const saveButtonHTML = isLoggedIn ?
+                `<button class="${saveButtonClass}" data-job-id="${jobId}">${saveButtonText}</button>` : '';
+
+            const timeAgo = getTimeAgo(job.posted_date || job.postedDate);
+
+            return `
+                <div class="job-card" data-job-id="${jobId}">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge ${getJobTypeBadgeClass(job.type)}">${job.type}</span>
+                        <span class="text-muted"><i class="far fa-clock me-1"></i> ${timeAgo}</span>
+                    </div>
+                    
+                    <h4>${job.title}</h4>
+                    <p class="mb-1"><strong>${job.company}</strong></p>
+                    <p class="text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> ${job.location}</p>
+                    
+                    <p class="mb-3">${(job.description || '').substring(0, 150)}${(job.description || '').length > 150 ? '...' : ''}</p>
+                    
+                    <div class="mb-3">
+                        ${(job.skills || []).slice(0, 4).map(skill => `<span class="badge bg-light text-dark me-1 mb-1">${skill}</span>`).join('')}
+                        ${(job.skills || []).length > 4 ? `<span class="badge bg-light text-dark me-1 mb-1">+${(job.skills || []).length - 4} more</span>` : ''}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-primary">${job.salary || 'Salary not specified'}</span>
+                        <div>
+                            <a href="job-details.html?id=${jobId}" class="btn btn-primary rounded-pill me-2">View Details</a>
+                            ${saveButtonHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getJobTypeBadgeClass(type) {
+            const classes = {
+                'Full-Time': 'bg-success',
+                'Part-Time': 'bg-info',
+                'Contract': 'bg-warning',
+                'Internship': 'bg-secondary',
+                'Remote': 'bg-primary'
+            };
+            return classes[type] || 'bg-secondary';
+        }
+
+        function getTimeAgo(dateString) {
+            if (!dateString) return 'Recently';
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 1) return '1 day ago';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)} week${Math.floor(diffDays / 7) > 1 ? 's' : ''} ago`;
+            return `${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? 's' : ''} ago`;
+        }
+
+        function setupEventListeners() {
+            document.getElementById('applyFilters').addEventListener('click', applyFilters);
+            document.getElementById('resetFilters').addEventListener('click', resetFilters);
+            document.getElementById('jobSearch').addEventListener('input', debounce(applyFilters, 300));
+            document.getElementById('locationFilter').addEventListener('input', debounce(applyFilters, 300));
+            document.getElementById('jobTypeFilter').addEventListener('change', applyFilters);
+            document.getElementById('experienceFilter').addEventListener('change', applyFilters);
+            document.getElementById('loadMoreBtn').addEventListener('click', loadMoreJobs);
+        }
+
+        async function applyFilters() {
+            const searchTerm = document.getElementById('jobSearch').value;
+            const location = document.getElementById('locationFilter').value;
+            const jobType = document.getElementById('jobTypeFilter').value;
+            const experienceLevel = document.getElementById('experienceFilter').value;
+
+            const filters = {
+                search: searchTerm || undefined,
+                location: location || undefined,
+                jobType: jobType || undefined,
+                experienceLevel: experienceLevel || undefined
+            };
+
+            await loadJobsFromBackend(filters);
+        }
+
+        function resetFilters() {
+            document.getElementById('jobSearch').value = '';
+            document.getElementById('locationFilter').value = '';
+            document.getElementById('jobTypeFilter').value = '';
+            document.getElementById('experienceFilter').value = '';
+            document.getElementById('skillsFilter').value = '';
+            loadJobsFromBackend();
+        }
+
+        function loadMoreJobs() {
+            displayedJobs += 8;
+            displayJobs(currentJobs);
+        }
+
+        function initializeSaveButtons() {
+            const saveButtons = document.querySelectorAll('.save-btn');
+            saveButtons.forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    const jobId = this.dataset.jobId;
+                    const jobCard = this.closest('.job-card');
+                    const job = currentJobs.find(j => (j.id === jobId || j._id === jobId));
+
+                    if (this.classList.contains('saved')) {
+                        this.classList.remove('saved');
+                        this.textContent = 'Save Job';
+                        await unsaveJob(jobId);
+                        showToast('Job removed from saved', 'info');
+                    } else {
+                        this.classList.add('saved');
+                        this.textContent = 'Saved ✓';
+                        await saveJob(jobId, job);
+                        showToast('Job saved successfully!', 'success');
+                    }
+                });
+            });
+        }
+
+        async function saveJob(jobId, job) {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                alert('Please login to save jobs');
+                return;
+            }
+
+            try {
+                const saveData = {
+                    job_id: jobId,
+                    title: job.title,
+                    company: job.company,
+                    location: job.location,
+                    type: job.type,
+                    salary: job.salary
+                };
+
+                const response = await fetch(`${API_BASE_URL}/api/saved-jobs/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(saveData)
+                });
+
+                if (response.ok) {
+                    userSavedJobs.add(jobId);
+                    const savedJob = await response.json();
+                    const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+                    savedJobs.push(savedJob);
+                    localStorage.setItem('savedJobs', JSON.stringify(savedJobs));
+                    return true;
+                } else {
+                    throw new Error('Failed to save job');
+                }
+            } catch (error) {
+                console.error('Error saving job:', error);
+                alert('Error saving job: ' + error.message);
+                return false;
+            }
+        }
+        // Add to jobs.html after line 400
+async function bulkSaveSelectedJobs() {
+    const checkboxes = document.querySelectorAll('.job-checkbox:checked');
+    const jobIds = Array.from(checkboxes).map(cb => cb.dataset.jobId);
+    
+    if (jobIds.length === 0) {
+        alert('Please select jobs to save');
+        return;
+    }
+    
+    const accessToken = localStorage.getItem('access_token');
+    const response = await fetch(`${API_BASE_URL}/api/user/bulk-save-jobs`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ job_ids: jobIds })
+    });
+    
+    if (response.ok) {
+        const data = await response.json();
+        alert(`${data.saved_count} jobs saved successfully!`);
+    }
+}
+
+        async function unsaveJob(jobId) {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) return false;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/saved-jobs/${jobId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (response.ok) {
+                    userSavedJobs.delete(jobId);
+                    const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+                    const updatedJobs = savedJobs.filter(job => job.job_id !== jobId);
+                    localStorage.setItem('savedJobs', JSON.stringify(updatedJobs));
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error unsaving job:', error);
+                return false;
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} position-fixed`;
+            toast.style.cssText = 'top:20px;right:20px;z-index:9999;min-width:300px;animation:slideInRight 0.5s;';
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'info'}-circle me-2"></i>${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.5s';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func(...args), wait);
+            };
+        }
+    </script>
+</body>
+</html>

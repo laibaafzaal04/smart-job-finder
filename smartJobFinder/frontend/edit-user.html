@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User – Admin</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Garamond&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .user-status-badge {
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold">SmartJobFinder</a>
+        <div>
+            <span class="me-3 text-muted" id="adminWelcome">Welcome, Admin</span>
+            <a href="admin-dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+            <a href="admin-users.html" class="btn btn-outline-primary rounded-pill me-2">Manage Users</a>
+            <a href="index.html" class="btn btn-primary rounded-pill" onclick="adminLogout()">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-5">
+    <div class="p-5 shadow-lg rounded-4">
+        <h2 class="fw-bold mb-4" style="font-family:'Playfair Display';">Edit User</h2>
+
+        <form id="editUserForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Full Name</label>
+                        <input type="text" class="form-control rounded-pill" id="userName" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" class="form-control rounded-pill" id="userEmail" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Role</label>
+                        <select class="form-select rounded-pill" id="userRole">
+                            <option value="job_seeker">Job Seeker</option>
+                            <option value="employer">Employer</option>
+                            <option value="admin">Admin</option>
+                            <option value="moderator">Moderator</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select class="form-select rounded-pill" id="userStatus">
+                            <option value="active">Active</option>
+                            <option value="pending">Pending</option>
+                            <option value="suspended">Suspended</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Profile Description</label>
+                <textarea class="form-control" id="userDescription" rows="4" placeholder="Enter user profile description..."></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Skills (comma separated)</label>
+                <input type="text" class="form-control rounded-pill" id="userSkills" placeholder="e.g., JavaScript, React, Marketing">
+            </div>
+
+            <div class="mb-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="hasCV">
+                    <label class="form-check-label" for="hasCV">
+                        User has uploaded CV
+                    </label>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary rounded-pill px-4">Update User</button>
+                <a href="admin-users.html" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                <button type="button" class="btn btn-danger rounded-pill px-4 ms-auto" id="deleteUserBtn">Delete User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Admin authentication check
+window.addEventListener('load', function() {
+    const isAdmin = localStorage.getItem('isAdmin');
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    
+    if (!isLoggedIn || !isAdmin) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Display admin name if available
+    const adminName = localStorage.getItem('adminName');
+    if (adminName) {
+        document.getElementById('adminWelcome').textContent = `Welcome, ${adminName}`;
+    }
+
+    // Load user data
+    loadUserData();
+});
+
+function loadUserData() {
+    // Get user ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('id');
+    
+    if (!userId) {
+        alert('No user ID specified');
+        window.location.href = 'admin-users.html';
+        return;
+    }
+    
+    // Get users from localStorage
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const adminUsers = JSON.parse(localStorage.getItem('adminUsers') || '{}');
+    
+    // Check both regular users and admin users
+    let user = users[userId] || adminUsers[userId];
+    
+    if (!user) {
+        // If not found by ID, try to find by email (for demo purposes)
+        user = Object.values(users).find(u => u.email === userId) || 
+               Object.values(adminUsers).find(u => u.email === userId);
+    }
+    
+    if (!user) {
+        alert('User not found');
+        window.location.href = 'admin-users.html';
+        return;
+    }
+    
+    // Populate form with user data
+    document.getElementById('userName').value = user.fullName || '';
+    document.getElementById('userEmail').value = user.email || '';
+    document.getElementById('userRole').value = user.role || 'job_seeker';
+    document.getElementById('userStatus').value = user.status || 'active';
+    document.getElementById('userDescription').value = user.description || '';
+    document.getElementById('userSkills').value = user.skills ? (Array.isArray(user.skills) ? user.skills.join(', ') : user.skills) : '';
+    document.getElementById('hasCV').checked = user.hasCV || false;
+    
+    // Store current user email for updates
+    document.getElementById('editUserForm').dataset.userEmail = user.email;
+}
+
+// Form submission
+document.getElementById('editUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const userEmail = this.dataset.userEmail;
+    if (!userEmail) {
+        alert('User email not found');
+        return;
+    }
+    
+    // Get form data
+    const userData = {
+        fullName: document.getElementById('userName').value,
+        email: document.getElementById('userEmail').value,
+        role: document.getElementById('userRole').value,
+        status: document.getElementById('userStatus').value,
+        description: document.getElementById('userDescription').value,
+        skills: document.getElementById('userSkills').value.split(',').map(skill => skill.trim()),
+        hasCV: document.getElementById('hasCV').checked,
+        updatedAt: new Date().toISOString()
+    };
+    
+    // Update user in localStorage
+    updateUser(userEmail, userData);
+    
+    // Show success message
+    alert('User updated successfully!');
+    
+    // Redirect back to users list
+    window.location.href = 'admin-users.html';
+});
+
+function updateUser(oldEmail, updatedUser) {
+    // Get existing users
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    const adminUsers = JSON.parse(localStorage.getItem('adminUsers') || '{}');
+    
+    // Check if user exists in regular users or admin users
+    if (users[oldEmail]) {
+        // Update regular user
+        if (oldEmail !== updatedUser.email) {
+            // Email changed, need to move the user
+            delete users[oldEmail];
+            users[updatedUser.email] = { ...users[oldEmail], ...updatedUser };
+        } else {
+            // Same email, just update
+            users[oldEmail] = { ...users[oldEmail], ...updatedUser };
+        }
+        localStorage.setItem('users', JSON.stringify(users));
+    } else if (adminUsers[oldEmail]) {
+        // Update admin user
+        if (oldEmail !== updatedUser.email) {
+            // Email changed, need to move the user
+            delete adminUsers[oldEmail];
+            adminUsers[updatedUser.email] = { ...adminUsers[oldEmail], ...updatedUser };
+        } else {
+            // Same email, just update
+            adminUsers[oldEmail] = { ...adminUsers[oldEmail], ...updatedUser };
+        }
+        localStorage.setItem('adminUsers', JSON.stringify(adminUsers));
+    }
+    
+    // Update current user if they are logged in
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    if (currentUser.email === oldEmail) {
+        localStorage.setItem('currentUser', JSON.stringify({ ...currentUser, ...updatedUser }));
+    }
+}
+
+// Delete user functionality
+document.getElementById('deleteUserBtn').addEventListener('click', function() {
+    const userEmail = document.getElementById('editUserForm').dataset.userEmail;
+    
+    if (!userEmail) {
+        alert('User email not found');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        // Delete user from localStorage
+        deleteUser(userEmail);
+        
+        // Show success message
+        alert('User deleted successfully!');
+        
+        // Redirect back to users list
+        window.location.href = 'admin-users.html';
+    }
+});
+
+function deleteUser(userEmail) {
+    // Remove from regular users
+    const users = JSON.parse(localStorage.getItem('users') || '{}');
+    if (users[userEmail]) {
+        delete users[userEmail];
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+    
+    // Remove from admin users
+    const adminUsers = JSON.parse(localStorage.getItem('adminUsers') || '{}');
+    if (adminUsers[userEmail]) {
+        delete adminUsers[userEmail];
+        localStorage.setItem('adminUsers', JSON.stringify(adminUsers));
+    }
+    
+    // If deleted user is currently logged in, log them out
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    if (currentUser.email === userEmail) {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userEmail');
+    }
+}
+
+function adminLogout() {
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('adminEmail');
+    localStorage.removeItem('adminName');
+    localStorage.removeItem('adminRole');
+    localStorage.removeItem('isLoggedIn');
+}
+</script>
+</body>
+</html>

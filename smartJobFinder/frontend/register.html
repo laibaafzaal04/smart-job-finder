@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration - Smart Job Finder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=EB+Garamond:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .form-control.error {
+            border-color: #dc3545;
+        }
+
+        .form-control.success {
+            border-color: #198754;
+        }
+
+        .registration-type-btn {
+            transition: all 0.3s ease;
+        }
+
+        .admin-code-section {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+        <a class="navbar-brand fw-bold" href="index.html">Smart<span
+                style="color: var(--primary-dark);">Job</span>Finder</a>
+    </nav>
+
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="card register-card shadow-lg p-4" style="width: 100%; max-width: 500px;">
+            <h2 class="text-center mb-4 fw-bold" style="font-family: 'Playfair Display';">Create Your Account</h2>
+
+            <!-- Registration Type Selector -->
+            <div class="text-center mb-4">
+                <div class="btn-group" role="group" style="width: 100%;">
+                    <button type="button" class="btn registration-type-btn rounded-pill active btn-primary"
+                        id="userRegisterBtn" style="flex: 1;">User Account</button>
+                    <button type="button" class="btn registration-type-btn rounded-pill btn-outline-primary"
+                        id="adminRegisterBtn" style="flex: 1;">Admin Account</button>
+                </div>
+            </div>
+
+            <form id="registerForm">
+                <!-- Admin Code Section (Hidden by default) -->
+                <div class="admin-code-section mb-3" id="adminCodeSection">
+                    <label class="form-label fw-semibold">Admin Registration Code</label>
+                    <input type="password" class="form-control rounded-pill input-field" id="adminCode"
+                        placeholder="Enter admin registration code">
+                    <div class="error-message" id="adminCodeError">Invalid admin registration code</div>
+                    <small class="text-muted">Contact system administrator to get the admin registration code.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Full Name</label>
+                    <input type="text" class="form-control rounded-pill input-field" id="fullName" required>
+                    <div class="error-message" id="fullNameError">Please enter your full name</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email</label>
+                    <input type="email" class="form-control rounded-pill input-field" id="registerEmail" required>
+                    <div class="error-message" id="emailError">Please enter a valid email address</div>
+                    <div class="error-message" id="emailExistsError">An account with this email already exists. Please
+                        <a href="login.html" class="alert-link">login here</a>.</div>
+                </div>
+
+                <div class="mb-3 password-field">
+                    <label class="form-label fw-semibold">Password</label>
+                    <input type="password" class="form-control rounded-pill input-field" id="registerPassword" required>
+                    <button type="button" class="password-toggle" id="passwordToggle">
+                        <i class="far fa-eye"></i>
+                    </button>
+                    <div class="error-message" id="passwordError">Password must be at least 6 characters long</div>
+                </div>
+
+                <div class="mb-3 password-field">
+                    <label class="form-label fw-semibold">Confirm Password</label>
+                    <input type="password" class="form-control rounded-pill input-field" id="confirmPassword" required>
+                    <button type="button" class="password-toggle" id="confirmPasswordToggle">
+                        <i class="far fa-eye"></i>
+                    </button>
+                    <div class="error-message" id="confirmPasswordError">Passwords do not match</div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="termsCheck" required>
+                    <label class="form-check-label" for="termsCheck">
+                        I agree to the <a href="#" class="text-primary">Terms of Service</a> and <a href="#"
+                            class="text-primary">Privacy Policy</a>
+                    </label>
+                    <div class="error-message" id="termsError">You must agree to the terms and conditions</div>
+                </div>
+
+                <button type="submit" class="btn btn-gradient w-100 rounded-pill py-2" id="submitBtn">Create User
+                    Account</button>
+            </form>
+
+            <p class="text-center mt-3">
+                Already have an account?
+                <a href="login.html" class="text-primary">Login</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+
+        const API_BASE_URL = "http://localhost:8000";  // FastAPI backend runs on 8000
+
+        // Get all form elements
+        const registerForm = document.getElementById('registerForm');
+        const fullNameInput = document.getElementById('fullName');
+        const emailInput = document.getElementById('registerEmail');
+        const passwordInput = document.getElementById('registerPassword');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const passwordToggle = document.getElementById('passwordToggle');
+        const confirmPasswordToggle = document.getElementById('confirmPasswordToggle');
+        const adminCodeInput = document.getElementById('adminCode');
+        const userRegisterBtn = document.getElementById('userRegisterBtn');
+        const adminRegisterBtn = document.getElementById('adminRegisterBtn');
+        const adminCodeSection = document.getElementById('adminCodeSection');
+        const submitBtn = document.getElementById('submitBtn');
+        const termsCheck = document.getElementById('termsCheck');
+
+        // Error elements
+        const fullNameError = document.getElementById('fullNameError');
+        const emailError = document.getElementById('emailError');
+        const emailExistsError = document.getElementById('emailExistsError');
+        const passwordError = document.getElementById('passwordError');
+        const confirmPasswordError = document.getElementById('confirmPasswordError');
+        const adminCodeError = document.getElementById('adminCodeError');
+        const termsError = document.getElementById('termsError');
+
+        let isAdminRegistration = false;
+
+        // Password toggle functionality
+        passwordToggle.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
+        });
+
+        confirmPasswordToggle.addEventListener('click', function () {
+            const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPasswordInput.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '<i class="far fa-eye"></i>' : '<i class="far fa-eye-slash"></i>';
+        });
+
+        // Registration type toggle
+        userRegisterBtn.addEventListener('click', function () {
+            isAdminRegistration = false;
+            this.classList.add('active', 'btn-primary');
+            this.classList.remove('btn-outline-secondary');
+            adminRegisterBtn.classList.remove('active', 'btn-primary');
+            adminRegisterBtn.classList.add('btn-outline-primary');
+            adminCodeSection.style.display = 'none';
+            adminCodeInput.required = false;
+            submitBtn.textContent = 'Create User Account';
+            clearForm();
+        });
+
+        adminRegisterBtn.addEventListener('click', function () {
+            isAdminRegistration = true;
+            this.classList.add('active', 'btn-primary');
+            this.classList.remove('btn-outline-primary');
+            userRegisterBtn.classList.remove('active', 'btn-primary');
+            userRegisterBtn.classList.add('btn-outline-primary');
+            adminCodeSection.style.display = 'block';
+            adminCodeInput.required = true;
+            submitBtn.textContent = 'Create Admin Account';
+            clearForm();
+        });
+
+        // Real-time validation
+        fullNameInput.addEventListener('input', function () {
+            validateFullName();
+        });
+
+        emailInput.addEventListener('input', function () {
+            validateEmail();
+            // Hide email exists error when user starts typing
+            hideError(emailExistsError);
+        });
+
+        passwordInput.addEventListener('input', function () {
+            validatePassword();
+            validateConfirmPassword();
+        });
+
+        confirmPasswordInput.addEventListener('input', function () {
+            validateConfirmPassword();
+        });
+
+        adminCodeInput.addEventListener('input', function () {
+            validateAdminCode();
+        });
+
+        termsCheck.addEventListener('change', function () {
+            validateTerms();
+        });
+
+        // Validation functions
+        function validateFullName() {
+            const value = fullNameInput.value.trim();
+            if (value === '') {
+                showError(fullNameInput, fullNameError, 'Please enter your full name');
+                return false;
+            } else if (value.length < 2) {
+                showError(fullNameInput, fullNameError, 'Name must be at least 2 characters long');
+                return false;
+            } else {
+                showSuccess(fullNameInput);
+                hideError(fullNameError);
+                return true;
+            }
+        }
+
+        function validateEmail() {
+            const value = emailInput.value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (value === '') {
+                showError(emailInput, emailError, 'Please enter your email address');
+                return false;
+            } else if (!emailRegex.test(value)) {
+                showError(emailInput, emailError, 'Please enter a valid email address');
+                return false;
+            } else {
+                showSuccess(emailInput);
+                hideError(emailError);
+                return true;
+            }
+        }
+
+        function validatePassword() {
+            const value = passwordInput.value;
+
+            if (value === '') {
+                showError(passwordInput, passwordError, 'Please enter a password');
+                return false;
+            } else if (value.length < 6) {
+                showError(passwordInput, passwordError, 'Password must be at least 6 characters long');
+                return false;
+            } else {
+                showSuccess(passwordInput);
+                hideError(passwordError);
+                return true;
+            }
+        }
+
+        function validateConfirmPassword() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (confirmPassword === '') {
+                showError(confirmPasswordInput, confirmPasswordError, 'Please confirm your password');
+                return false;
+            } else if (password !== confirmPassword) {
+                showError(confirmPasswordInput, confirmPasswordError, 'Passwords do not match');
+                return false;
+            } else {
+                showSuccess(confirmPasswordInput);
+                hideError(confirmPasswordError);
+                return true;
+            }
+        }
+
+        function validateAdminCode() {
+            const value = adminCodeInput.value;
+
+            if (isAdminRegistration && value === '') {
+                showError(adminCodeInput, adminCodeError, 'Please enter admin registration code');
+                return false;
+            } else if (isAdminRegistration && value !== 'ADMIN2024') {
+                showError(adminCodeInput, adminCodeError, 'Invalid admin registration code');
+                return false;
+            } else {
+                showSuccess(adminCodeInput);
+                hideError(adminCodeError);
+                return true;
+            }
+        }
+
+        function validateTerms() {
+            if (!termsCheck.checked) {
+                showError(termsCheck, termsError, 'You must agree to the terms and conditions');
+                return false;
+            } else {
+                hideError(termsError);
+                return true;
+            }
+        }
+
+
+        // Helper functions
+        function showError(input, errorElement, message) {
+            input.classList.remove('success');
+            if (input.type !== 'checkbox') {
+                input.classList.add('error');
+            }
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function showSuccess(input) {
+            input.classList.remove('error');
+            input.classList.add('success');
+        }
+
+        function hideError(errorElement) {
+            errorElement.style.display = 'none';
+        }
+
+        function clearForm() {
+            fullNameInput.value = '';
+            emailInput.value = '';
+            passwordInput.value = '';
+            confirmPasswordInput.value = '';
+            adminCodeInput.value = '';
+            termsCheck.checked = false;
+            clearErrors();
+        }
+
+        function clearErrors() {
+            const errorElements = document.querySelectorAll('.error-message');
+            errorElements.forEach(element => {
+                element.style.display = 'none';
+            });
+
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                input.classList.remove('error', 'success');
+            });
+        }
+
+        registerForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            // Validate all fields
+            const isFullNameValid = validateFullName();
+            const isEmailValid = validateEmail();
+            const isPasswordValid = validatePassword();
+            const isConfirmPasswordValid = validateConfirmPassword();
+            const isAdminCodeValid = isAdminRegistration ? validateAdminCode() : true;
+            const isTermsValid = validateTerms();
+
+            if (isFullNameValid && isEmailValid && isPasswordValid &&
+                isConfirmPasswordValid && isAdminCodeValid && isTermsValid) {
+
+                const fullName = fullNameInput.value.trim();
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+                const adminCode = adminCodeInput.value;
+
+                try {
+                    // Show loading state
+                    const submitBtn = document.getElementById('submitBtn');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.textContent = 'Creating Account...';
+                    submitBtn.disabled = true;
+
+                    // Prepare registration data
+                    const registerData = {
+                        full_name: fullName,
+                        email: email,
+                        password: password,
+                        confirm_password: confirmPasswordInput.value,
+                        is_admin: isAdminRegistration,
+                        admin_code: adminCode
+                    };
+
+                    console.log('Sending registration request:', registerData);
+
+                    // Send registration request
+                    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(registerData)
+                    });
+
+                    const responseText = await response.text();
+                    console.log('Registration response:', responseText);
+
+                    let data;
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (e) {
+                        console.error('JSON parse error:', e);
+                        showGeneralError('Server error. Please try again.');
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                        return;
+                    }
+
+                    // if (response.ok) {
+                    //     // Registration successful
+                    //     console.log('Registration successful:', data);
+
+                    //     // Show success message
+                    //     alert(data.message || 'Account created successfully!');
+
+                    //     // For BOTH regular users AND admin users: Redirect to login page after registration
+                    //     if (isAdminRegistration) {
+                    //         alert('Admin account created! Please login with your new admin credentials.');
+                    //     } else {
+                    //         alert('Account created! Please login with your new credentials.');
+                    //     }
+
+                    //     // Clear form and redirect to login page
+                    //     clearForm();
+                    //     setTimeout(() => {
+                    //         window.location.href = 'login.html';
+                    //     }, 1000);
+                    
+                    if (response.ok) {
+                        // Registration successful
+                        console.log('Registration successful:', data);
+
+                        // Show success message
+                        alert(data.message || 'Account created successfully!');
+
+                        // For REGULAR users: Redirect to complete profile page
+                        if (!isAdminRegistration) {
+                            // Store the token temporarily for the profile completion flow
+                            localStorage.setItem('temp_access_token', data.access_token);
+                            localStorage.setItem('temp_user', JSON.stringify(data.user));
+
+                            // Clear form and redirect to upload-cv.html (complete profile)
+                            clearForm();
+                            setTimeout(() => {
+                                window.location.href = 'upload-cv.html?new_user=true';
+                            }, 500);
+                        }
+                        // For ADMIN users: Redirect to login page
+                        else {
+                            alert('Admin account created successfully! Please login with your new admin credentials.');
+
+                            // Clear form and redirect to login page
+                            clearForm();
+                            setTimeout(() => {
+                                window.location.href = 'login.html';
+                            }, 500);
+                        }
+
+                    } else {
+                        // Registration failed
+                        console.error('Registration failed:', data);
+
+                        if (data.detail === "Email already registered") {
+                            showError(emailInput, emailExistsError, 'An account with this email already exists. Please login here.');
+                        } else if (data.detail === "Invalid admin registration code") {
+                            showError(adminCodeInput, adminCodeError, 'Invalid admin registration code');
+                        } else {
+                            showGeneralError(data.detail || 'Registration failed. Please try again.');
+                        }
+
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Registration error:', error);
+                    showGeneralError('Network error. Please check if backend is running.');
+
+                    // Reset button
+                    const submitBtn = document.getElementById('submitBtn');
+                    submitBtn.textContent = isAdminRegistration ? 'Create Admin Account' : 'Create User Account';
+                    submitBtn.disabled = false;
+                }
+            }
+        });
+
+        // Initialize form state
+        clearErrors();
+
+        // Add default admin accounts if they don't exist
+        window.addEventListener('load', function () {
+            const existingAdmins = JSON.parse(localStorage.getItem('adminUsers') || '{}');
+
+            // Add default admin accounts if none exist
+            if (Object.keys(existingAdmins).length === 0) {
+                const defaultAdmins = {
+                    'admin@smartjobfinder.com': {
+                        fullName: 'System Administrator',
+                        email: 'admin@smartjobfinder.com',
+                        password: 'admin123',
+                        role: 'admin',
+                        isAdmin: true,
+                        registeredAt: new Date().toISOString()
+                    },
+                    'moderator@smartjobfinder.com': {
+                        fullName: 'Content Moderator',
+                        email: 'moderator@smartjobfinder.com',
+                        password: 'mod123',
+                        role: 'moderator',
+                        isAdmin: true,
+                        registeredAt: new Date().toISOString()
+                    }
+                };
+                localStorage.setItem('adminUsers', JSON.stringify(defaultAdmins));
+            }
+        });
+    </script>
+</body>
+
+</html>
