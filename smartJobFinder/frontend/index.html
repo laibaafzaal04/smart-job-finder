@@ -232,53 +232,31 @@
                 <p class="text-muted lead">Discover opportunities from top companies</p>
             </div>
         </div>
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-4">
-                <div class="job-card" data-job-id="job1" data-title="Frontend Developer" data-company="Google" data-location="California">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <span class="badge bg-success">Full-Time</span>
-                        <span class="text-muted"><i class="far fa-clock me-1"></i> 2 days ago</span>
-                    </div>
-                    <h4>Frontend Developer</h4>
-                    <p class="mb-1"><strong>Google</strong></p>
-                    <p class="text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> California, USA</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold text-primary">$90,000 - $120,000</span>
-                        <a href="job-details.html?id=job1" class="btn btn-primary btn-sm rounded-pill">View Details</a>
-                    </div>
+        
+        <!-- Loading State -->
+        <div class="row g-4" id="featuredJobsLoading">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="job-card" data-job-id="job2" data-title="UX/UI Designer" data-company="Figma" data-location="Remote">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <span class="badge bg-primary">Remote</span>
-                        <span class="text-muted"><i class="far fa-clock me-1"></i> 1 week ago</span>
-                    </div>
-                    <h4>UX/UI Designer</h4>
-                    <p class="mb-1"><strong>Figma</strong></p>
-                    <p class="text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> Remote</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold text-primary">$85,000 - $110,000</span>
-                        <a href="job-details.html?id=job2" class="btn btn-primary btn-sm rounded-pill">View Details</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <div class="job-card" data-job-id="job3" data-title="Data Scientist" data-company="Netflix" data-location="California">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <span class="badge bg-success">Full-Time</span>
-                        <span class="text-muted"><i class="far fa-clock me-1"></i> 3 days ago</span>
-                    </div>
-                    <h4>Data Scientist</h4>
-                    <p class="mb-1"><strong>Netflix</strong></p>
-                    <p class="text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> California, USA</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold text-primary">$110,000 - $140,000</span>
-                        <a href="job-details.html?id=job3" class="btn btn-primary btn-sm rounded-pill">View Details</a>
-                    </div>
-                </div>
+                <p class="mt-3 text-muted">Loading featured jobs...</p>
             </div>
         </div>
+        
+        <!-- Jobs Container -->
+        <div class="row g-4" id="featuredJobsContainer" style="display: none;">
+            <!-- Jobs will be loaded here dynamically -->
+        </div>
+        
+        <!-- No Jobs Message -->
+        <div id="noFeaturedJobs" style="display: none;">
+            <div class="text-center py-5">
+                <i class="fas fa-briefcase fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No featured jobs available yet</h4>
+                <p class="text-muted">Check back soon for new opportunities!</p>
+            </div>
+        </div>
+        
         <div class="text-center mt-5">
             <a href="jobs.html" class="btn btn-primary rounded-pill px-5 py-3">
                 <i class="fas fa-briefcase me-2"></i>View All Jobs
@@ -481,6 +459,178 @@ window.addEventListener('load', function() {
         }
     }
 });
+</script>
+<script>
+// API Base URL
+const API_BASE_URL = "http://localhost:8000";
+
+// Load featured jobs when page loads
+window.addEventListener('load', function() {
+    loadFeaturedJobs();
+    
+    // Load dark mode if previously set
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    if (darkMode) {
+        document.body.classList.add('dark-mode');
+        const navbar = document.querySelector('.navbar');
+        if (navbar) {
+            navbar.classList.remove('navbar-light', 'bg-white');
+            navbar.classList.add('navbar-dark', 'bg-dark');
+        }
+    }
+});
+
+// Load featured jobs from backend
+async function loadFeaturedJobs() {
+    const loadingContainer = document.getElementById('featuredJobsLoading');
+    const jobsContainer = document.getElementById('featuredJobsContainer');
+    const noJobsMessage = document.getElementById('noFeaturedJobs');
+    
+    try {
+        console.log('Fetching featured jobs from backend...');
+        
+        // Fetch jobs from backend (limit to 6 for featured section)
+        const response = await fetch(`${API_BASE_URL}/api/user/search-jobs?limit=6&page=1`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch jobs from backend');
+        }
+        
+        const data = await response.json();
+        const jobs = data.jobs || [];
+        
+        console.log('Featured jobs loaded:', jobs.length);
+        
+        // Hide loading
+        loadingContainer.style.display = 'none';
+        
+        if (jobs.length === 0) {
+            // Show no jobs message
+            noJobsMessage.style.display = 'block';
+            return;
+        }
+        
+        // Display jobs
+        jobsContainer.style.display = 'flex';
+        jobsContainer.innerHTML = jobs.map(job => createFeaturedJobCard(job)).join('');
+        
+        // Cache jobs for offline access
+        localStorage.setItem('featuredJobs', JSON.stringify(jobs));
+        
+    } catch (error) {
+        console.error('Error loading featured jobs:', error);
+        
+        // Hide loading
+        loadingContainer.style.display = 'none';
+        
+        // Try to load from cache
+        const cachedJobs = JSON.parse(localStorage.getItem('featuredJobs') || '[]');
+        
+        if (cachedJobs.length > 0) {
+            console.log('Loading featured jobs from cache');
+            jobsContainer.style.display = 'flex';
+            jobsContainer.innerHTML = cachedJobs.map(job => createFeaturedJobCard(job)).join('');
+            
+            // Show warning about offline mode
+            showOfflineWarning();
+        } else {
+            // Show no jobs message
+            noJobsMessage.style.display = 'block';
+        }
+    }
+}
+
+// Create job card HTML
+function createFeaturedJobCard(job) {
+    const jobId = job.id || job._id;
+    const timeAgo = getTimeAgo(job.posted_date || job.created_at);
+    const jobTypeBadge = getJobTypeBadgeClass(job.type);
+    
+    return `
+        <div class="col-md-6 col-lg-4">
+            <div class="job-card" data-job-id="${jobId}" data-title="${job.title}" data-company="${job.company}" data-location="${job.location}">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <span class="badge ${jobTypeBadge}">${job.type || 'Full-Time'}</span>
+                    <span class="text-muted"><i class="far fa-clock me-1"></i> ${timeAgo}</span>
+                </div>
+                <h4>${job.title}</h4>
+                <p class="mb-1"><strong>${job.company}</strong></p>
+                <p class="text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> ${job.location}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold text-primary">${job.salary || 'Competitive Salary'}</span>
+                    <a href="job-details.html?id=${jobId}" class="btn btn-primary btn-sm rounded-pill">View Details</a>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Get job type badge class
+function getJobTypeBadgeClass(type) {
+    const classes = {
+        'Full-Time': 'bg-success',
+        'Part-Time': 'bg-info',
+        'Internship': 'bg-warning text-dark',
+        'Contract': 'bg-secondary',
+        'Remote': 'bg-primary'
+    };
+    return classes[type] || 'bg-success';
+}
+
+// Calculate time ago
+function getTimeAgo(dateString) {
+    if (!dateString) return 'Recently';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    const diffWeeks = Math.floor(diffDays / 7);
+    
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffWeeks < 4) return `${diffWeeks} weeks ago`;
+    return date.toLocaleDateString();
+}
+
+// Show offline warning
+function showOfflineWarning() {
+    const warning = document.createElement('div');
+    warning.className = 'alert alert-warning alert-dismissible fade show position-fixed';
+    warning.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+    warning.innerHTML = `
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Offline Mode:</strong> Showing cached jobs. Connect to internet for latest listings.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(warning);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        warning.remove();
+    }, 5000);
+}
+
+// Dark Mode Toggle
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+        if (isDark) {
+            navbar.classList.remove('navbar-light', 'bg-white');
+            navbar.classList.add('navbar-dark', 'bg-dark');
+        } else {
+            navbar.classList.remove('navbar-dark', 'bg-dark');
+            navbar.classList.add('navbar-light', 'bg-white');
+        }
+    }
+}
 </script>
 </body>
 </html>

@@ -22,8 +22,8 @@ class EmailService:
         # Email configuration
         self.smtp_server = "smtp.gmail.com"  # Change for other providers
         self.smtp_port = 587
-        self.sender_email = settings.EMAIL_HOST_USER if hasattr(settings, 'EMAIL_HOST_USER') else None
-        self.sender_password = settings.EMAIL_HOST_PASSWORD if hasattr(settings, 'EMAIL_HOST_PASSWORD') else None
+        self.sender_email = settings.EMAIL_HOST_USER
+        self.sender_password = settings.EMAIL_HOST_PASSWORD
         self.sender_name = "Smart Job Finder"
     
     def _create_connection(self):
@@ -100,7 +100,7 @@ class EmailService:
         """Send password reset email"""
         
         # Create reset link (adjust domain in production)
-        reset_link = f"http://localhost:8000/reset-password.html?token={reset_token}"
+        reset_link = f"http://localhost:5500/reset-password.html?token={reset_token}"
         
         subject = "Reset Your Password - Smart Job Finder"
         

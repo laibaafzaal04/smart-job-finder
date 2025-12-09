@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
-
+import os
+from app.config import settings
+os.makedirs("uploads/cv", exist_ok=True)
 from app.database import db
 from app.routes.auth import router as auth_router
 from app.routes.profile import router as profile_router
@@ -27,7 +29,7 @@ app = FastAPI(
 # CORS middleware - FIXED
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
+    allow_origins=settings.CORS_ORIGINS,  # Allow all origins for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
