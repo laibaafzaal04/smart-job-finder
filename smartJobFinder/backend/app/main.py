@@ -3,8 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 import logging
 import os
 from app.config import settings
+
+# Create uploads directory if it doesn't exist
 os.makedirs("uploads/cv", exist_ok=True)
+
+# Import database
 from app.database import db
+
+# Import routers
 from app.routes.auth import router as auth_router
 from app.routes.profile import router as profile_router
 from app.routes.jobs import router as jobs_router
@@ -13,8 +19,9 @@ from app.routes.saved_jobs import router as saved_jobs_router
 from app.routes import stats
 from app.routes.admin import router as admin_router
 from app.routes import user_enhancements
+from app.routes import chatbot
 
-
+from app.routes import matching
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,17 +33,17 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
-# CORS middleware - FIXED
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,  # Allow all origins for development
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"]
 )
 
-# Include routers
+# Include routers - ORDER MATTERS!
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(jobs_router)
@@ -45,6 +52,10 @@ app.include_router(saved_jobs_router)
 app.include_router(stats.router)
 app.include_router(admin_router)
 app.include_router(user_enhancements.router)
+app.include_router(chatbot.router)
+app.include_router(matching.router)
+
+
 
 @app.on_event("startup")
 async def startup_db_client():

@@ -411,26 +411,6 @@
                         submitBtn.disabled = false;
                         return;
                     }
-
-                    // if (response.ok) {
-                    //     // Registration successful
-                    //     console.log('Registration successful:', data);
-
-                    //     // Show success message
-                    //     alert(data.message || 'Account created successfully!');
-
-                    //     // For BOTH regular users AND admin users: Redirect to login page after registration
-                    //     if (isAdminRegistration) {
-                    //         alert('Admin account created! Please login with your new admin credentials.');
-                    //     } else {
-                    //         alert('Account created! Please login with your new credentials.');
-                    //     }
-
-                    //     // Clear form and redirect to login page
-                    //     clearForm();
-                    //     setTimeout(() => {
-                    //         window.location.href = 'login.html';
-                    //     }, 1000);
                     
                     if (response.ok) {
                         // Registration successful
@@ -440,17 +420,11 @@
                         alert(data.message || 'Account created successfully!');
 
                         // For REGULAR users: Redirect to complete profile page
-                        if (!isAdminRegistration) {
-                            // Store the token temporarily for the profile completion flow
-                            localStorage.setItem('temp_access_token', data.access_token);
-                            localStorage.setItem('temp_user', JSON.stringify(data.user));
-
-                            // Clear form and redirect to upload-cv.html (complete profile)
-                            clearForm();
-                            setTimeout(() => {
-                                window.location.href = 'upload-cv.html?new_user=true';
-                            }, 500);
-                        }
+                       if (!isAdminRegistration) {
+    localStorage.setItem('temp_access_token', data.access_token);
+    localStorage.setItem('temp_user', JSON.stringify(data.user));
+    window.location.href = 'upload-cv.html?new_user=true';
+}
                         // For ADMIN users: Redirect to login page
                         else {
                             alert('Admin account created successfully! Please login with your new admin credentials.');
@@ -519,6 +493,11 @@
                 localStorage.setItem('adminUsers', JSON.stringify(defaultAdmins));
             }
         });
+        if (!isAdminRegistration) {
+    localStorage.setItem('temp_access_token', data.access_token);
+    localStorage.setItem('temp_user', JSON.stringify(data.user));
+    window.location.href = 'upload-cv.html?new_user=true';
+}
     </script>
 </body>
 

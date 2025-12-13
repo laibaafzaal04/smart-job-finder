@@ -519,3 +519,71 @@ async def bulk_save_jobs(
         "saved_count": saved_count,
         "message": f"{saved_count} jobs saved successfully"
     }
+    
+@router.get("/recommended-jobs-advanced")
+async def get_recommended_jobs_advanced(
+    token: str = Depends(oauth2_scheme),
+    limit: int = Query(10, le=50)
+):
+    """Advanced job recommendations with SKILL MATCHING SCORE"""
+    payload = decode_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    user_email = payload.get("sub")
+    users_collection = get_collection(USERS_COLLECTION)
+    jobs_collection = get_collection(JOBS_COLLECTION)
+    profiles_collection = get_collection(PROFILES_COLLECTION)
+    
+    user = await users_collection.find_one({"email": user_email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    profile = await profiles_collection.find_one({"user_id": str(user["_id"])})
+    
+    if not profile or not profile.get("skills"):
+        # Fallback to recent jobs
+        cursor = jobs_collection.find({"status": "active"}).sort("posted_date", -1).limit(limit)
+        jobs = await cursor.to_list(length=limit)
+        return [job_helper_with_id(job) for job in jobs]
+    
+    user_skills = profile.get("skills", [])
+    
+    # ✅ AGGREGATION PIPELINE with skill matching
+    pipeline = [
+        # Match active jobs
+        {"$match": {"status": "active"}},
+        
+        # Add skill match score
+        {"$addFields": {
+            "matched_skills": {
+                "$size": {
+                    "$setIntersection": ["$skills", user_skills]
+                }
+            },
+            "total_skills": {"$size": "$skills"}
+        }},
+        
+        # Calculate match percentage
+        {"$addFields": {
+            "match_score": {
+                "$multiply": [
+                    {"$divide": ["$matched_skills", {"$add": ["$total_skills", 0.1]}]},
+                    100
+                ]
+            }
+        }},
+        
+        # Filter jobs with at least 1 matching skill
+        {"$match": {"matched_skills": {"$gt": 0}}},
+        
+        # Sort by match score and date
+        {"$sort": {"match_score": -1, "posted_date": -1}},
+        
+        # Limit results
+        {"$limit": limit}
+    ]
+    
+    jobs = await jobs_collection.aggregate(pipeline).to_list(length=limit)
+    
+    return [job_helper_with_id(job) for job in jobs]

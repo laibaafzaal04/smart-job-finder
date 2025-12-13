@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Career Assistant - Smart Job Finder</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=EB+Garamond:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+        .chat-container {
+            height: calc(100vh - 250px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message-user {
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .message-ai {
+            display: flex;
+            justify-content: flex-start;
+        }
+        
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        
+        .message-user .message-content {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message-ai .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+            font-size: 18px;
+        }
+        
+        .message-user .message-avatar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+        
+        .message-ai .message-avatar {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            color: white;
+        }
+        
+        .chat-input-container {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .chat-input {
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            padding: 12px 20px;
+            transition: all 0.3s;
+        }
+        
+        .chat-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 0.2rem rgba(var(--primary-rgb, 102, 126, 234), 0.25);
+        }
+        
+        .send-btn {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .send-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(var(--primary-rgb, 102, 126, 234), 0.4);
+        }
+        
+        .send-btn:disabled {
+            background: #ccc;
+            transform: none;
+        }
+        
+        .typing-indicator {
+            display: none;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 18px;
+            width: fit-content;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .typing-indicator.active {
+            display: block;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+        
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .suggestion-chip {
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .suggestion-chip:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state i {
+            font-size: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        
+        /* Add your existing theme classes */
+        .job-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+        }
+        
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        }
+        
+        .btn-rounded {
+            border-radius: 25px;
+            padding: 8px 20px;
+        }
+        
+        .hero {
+            padding: 80px 0;
+            color: white;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR - Matching your other pages -->
+<nav class="navbar navbar-light bg-white shadow-sm px-4 py-3">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="dashboard.html">Smart<span style="color: var(--primary-dark);">Job</span>Finder</a>
+        <div>
+            <a href="dashboard.html" class="btn btn-outline-primary rounded-pill me-2">Dashboard</a>
+            <a href="jobs.html" class="btn btn-outline-primary rounded-pill me-2">Browse Jobs</a>
+            <a href="profile.html" class="btn btn-outline-primary rounded-pill me-2">Profile</a>
+            <a href="index.html" class="btn btn-primary rounded-pill" onclick="logout()">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section - Matching dashboard style -->
+<div class="hero" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);">
+    <div class="container text-center">
+        <h1 class="hero-title">
+            <i class="fas fa-robot me-2"></i>AI Career Assistant
+        </h1>
+        <p class="hero-subtitle">Get personalized career advice powered by artificial intelligence</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Back button -->
+            <div class="d-flex align-items-center mb-4">
+                <a href="dashboard.html" class="btn btn-outline-secondary rounded-circle me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0" style="font-family: 'Playfair Display';">
+                        Chat with Career Assistant
+                    </h2>
+                    <p class="text-muted mb-0">Ask questions about resume building, interviews, career paths, and more</p>
+                </div>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Empty State -->
+                        <div class="empty-state" id="emptyState">
+                            <i class="fas fa-comments"></i>
+                            <h4 class="fw-bold mb-3">Start a Conversation</h4>
+                            <p class="text-muted mb-4">Ask me anything about your career, job search, or professional development!</p>
+                            
+                            <div class="suggestion-chips" id="suggestionChips">
+                                <div class="suggestion-chip" onclick="sendSuggestion('How can I improve my resume?')">
+                                    💼 Improve Resume
+                                </div>
+                                <div class="suggestion-chip" onclick="sendSuggestion('What are common interview questions?')">
+                                    🎤 Interview Tips
+                                </div>
+                                <div class="suggestion-chip" onclick="sendSuggestion('How do I negotiate salary?')">
+                                    💰 Salary Negotiation
+                                </div>
+                                <div class="suggestion-chip" onclick="sendSuggestion('Career change advice')">
+                                    🔄 Career Change
+                                </div>
+                                <div class="suggestion-chip" onclick="sendSuggestion('How to write a cover letter?')">
+                                    📝 Cover Letter
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Messages will be added here -->
+                    </div>
+                    
+                    <!-- Typing Indicator -->
+                    <div class="message-ai">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="typing-indicator" id="typingIndicator">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Input Area -->
+                    <div class="chat-input-container">
+                        <form id="chatForm" class="d-flex gap-2">
+                            <input 
+                                type="text" 
+                                id="chatInput" 
+                                class="form-control chat-input" 
+                                placeholder="Ask me anything about your career, interviews, resumes, etc..."
+                                autocomplete="off"
+                            >
+                            <button type="submit" class="btn btn-primary send-btn" id="sendBtn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                        <div class="mt-2 text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                Try: "How do I answer 'Tell me about yourself'?" or "What skills are in demand?"
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tips Section -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mt-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="fas fa-lightbulb text-warning me-2"></i>Chat Tips
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Be specific about your questions</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Share your career goals</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Ask for examples and templates</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Request feedback on your approach</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Ask about industry trends</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Get tips for specific job types</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer - Matching your other pages -->
+<footer class="bg-dark text-white py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-0">© 2025 Smart Job Finder. All Rights Reserved.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="#" class="text-white me-3">Privacy Policy</a>
+                <a href="#" class="text-white">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+const API_BASE_URL = "http://localhost:8000";
+let conversationHistory = [];
+let isTyping = false;
+
+window.addEventListener('load', function() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Update navbar based on login status
+    updateNavbar();
+    
+    // Focus input
+    document.getElementById('chatInput').focus();
+    
+    // Load conversation history from localStorage
+    const savedHistory = localStorage.getItem('chatHistory');
+    if (savedHistory) {
+        conversationHistory = JSON.parse(savedHistory);
+        // Display saved messages
+        conversationHistory.forEach(msg => {
+            if (msg.content) {
+                const messagesContainer = document.getElementById('chatMessages');
+                const emptyState = document.getElementById('emptyState');
+                if (emptyState) {
+                    emptyState.style.display = 'none';
+                }
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message message-${msg.role}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.innerHTML = msg.role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.textContent = msg.content;
+                
+                if (msg.role === 'user') {
+                    messageDiv.appendChild(contentDiv);
+                    messageDiv.appendChild(avatar);
+                } else {
+                    messageDiv.appendChild(avatar);
+                    messageDiv.appendChild(contentDiv);
+                }
+                
+                messagesContainer.appendChild(messageDiv);
+            }
+        });
+        // Scroll to bottom
+        const messagesContainer = document.getElementById('chatMessages');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+});
+
+function updateNavbar() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+        window.location.href = 'login.html';
+        return;
+    }
+}
+
+document.getElementById('chatForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message || isTyping) return;
+    
+    // Clear input
+    input.value = '';
+    
+    // Hide empty state
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) {
+        emptyState.style.display = 'none';
+    }
+    
+    // Add user message
+    addMessage(message, 'user');
+    
+    // Send to API
+    await sendMessageToAI(message);
+});
+
+function addMessage(content, role) {
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message message-${role}`;
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.innerHTML = role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    contentDiv.textContent = content;
+    
+    if (role === 'user') {
+        messageDiv.appendChild(contentDiv);
+        messageDiv.appendChild(avatar);
+    } else {
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(contentDiv);
+    }
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    
+    // Add to conversation history and save to localStorage
+    conversationHistory.push({ role, content });
+    localStorage.setItem('chatHistory', JSON.stringify(conversationHistory));
+}
+
+async function sendMessageToAI(message) {
+    const accessToken = localStorage.getItem('access_token');
+    if (!accessToken) {
+        showToast('Please login to use the chatbot', 'warning');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    isTyping = true;
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('typingIndicator').classList.add('active');
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/chatbot/chat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                conversation_history: conversationHistory
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to get response from AI');
+        }
+        
+        const data = await response.json();
+        
+        // Hide typing indicator
+        document.getElementById('typingIndicator').classList.remove('active');
+        
+        // Add AI response
+        addMessage(data.response, 'assistant');
+        
+    } catch (error) {
+        console.error('Chat error:', error);
+        document.getElementById('typingIndicator').classList.remove('active');
+        
+        // Fallback response if API fails
+        const fallbackResponses = [
+            "I'm having trouble connecting right now. Here are some general tips for your question...",
+            "Currently experiencing technical difficulties. In the meantime, you might want to check out our career resources section.",
+            "Let me think about that... Actually, try visiting our resources page for detailed guides on career development."
+        ];
+        
+        const randomResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+        addMessage(randomResponse, 'assistant');
+        
+        showToast('Using fallback response. Try again later for AI-powered advice.', 'warning');
+    } finally {
+        isTyping = false;
+        document.getElementById('sendBtn').disabled = false;
+        document.getElementById('chatInput').focus();
+    }
+}
+
+function sendSuggestion(text) {
+    document.getElementById('chatInput').value = text;
+    document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; animation: slideInRight 0.5s;';
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check' : type === 'warning' ? 'exclamation-triangle' : type === 'danger' ? 'times' : 'info'}-circle me-2"></i>
+        ${message}
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.5s';
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
+function logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('chatHistory');
+    window.location.href = 'index.html';
+}
+
+// Add Enter key support
+document.getElementById('chatInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+    }
+});
+
+// Clear chat history button (optional)
+function clearChatHistory() {
+    if (confirm('Clear chat history?')) {
+        conversationHistory = [];
+        localStorage.removeItem('chatHistory');
+        document.getElementById('chatMessages').innerHTML = '';
+        document.getElementById('emptyState').style.display = 'block';
+    }
+}
+</script>
+</body>
+</html>

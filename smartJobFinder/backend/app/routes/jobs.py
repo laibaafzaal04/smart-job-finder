@@ -101,7 +101,6 @@ async def create_job(job_data: JobCreate, token: str = Depends(oauth2_scheme)):
     
     return JobResponse(**job_helper(created_job))
 
-# Get all jobs for users (public endpoint)
 @router.get("/", response_model=List[JobResponse])
 async def get_jobs(
     search: Optional[str] = Query(None, description="Search by title, company, or skills"),
@@ -112,19 +111,14 @@ async def get_jobs(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100)
 ):
-    """Get all active jobs for users (public)"""
+    """Get all active jobs with FULL-TEXT SEARCH"""
     jobs_collection = get_collection(JOBS_COLLECTION)
     
-    # Build query - only show active jobs to users
     query = {"status": JobStatus.ACTIVE}
     
+    # ✅ USE TEXT SEARCH instead of regex
     if search:
-        query["$or"] = [
-            {"title": {"$regex": search, "$options": "i"}},
-            {"company": {"$regex": search, "$options": "i"}},
-            {"description": {"$regex": search, "$options": "i"}},
-            {"skills": {"$regex": search, "$options": "i"}}
-        ]
+        query["$text"] = {"$search": search}
     
     if location:
         query["location"] = {"$regex": location, "$options": "i"}
@@ -135,13 +129,17 @@ async def get_jobs(
     if experience_level:
         query["experience_level"] = experience_level
     
-    # ✅ ADD SKILLS FILTER
     if skills:
         skill_list = [s.strip() for s in skills.split(",")]
         query["skills"] = {"$in": skill_list}
     
-    # Get jobs
-    cursor = jobs_collection.find(query).skip(skip).limit(limit).sort("posted_date", -1)
+    # ✅ SORT by text score when searching
+    sort_criteria = [("posted_date", -1)]
+    if search:
+        sort_criteria.insert(0, ("score", {"$meta": "textScore"}))
+        query["score"] = {"$meta": "textScore"}
+    
+    cursor = jobs_collection.find(query).skip(skip).limit(limit).sort(sort_criteria)
     jobs = await cursor.to_list(length=limit)
     
     return [JobResponse(**job_helper(job)) for job in jobs]

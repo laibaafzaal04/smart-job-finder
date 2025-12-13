@@ -98,3 +98,35 @@ async def get_admin_dashboard_stats(token: str = Depends(oauth2_scheme)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error calculating statistics"
         )
+
+
+@router.get("/analytics/applications")
+async def get_application_analytics(token: str = Depends(oauth2_scheme)):
+    """Advanced analytics with aggregation pipeline"""
+    payload = decode_token(token)
+    
+    if not payload or payload.get("role") not in ["admin", "moderator"]:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    applications_collection = get_collection(APPLICATIONS_COLLECTION)
+    
+    # ✅ COMPLEX AGGREGATION: Applications by status over time
+    pipeline = [
+        {
+            "$group": {
+                "_id": {
+                    "status": "$status",
+                    "month": {"$month": "$applied_at"},
+                    "year": {"$year": "$applied_at"}
+                },
+                "count": {"$sum": 1}
+            }
+        },
+        {
+            "$sort": {"_id.year": -1, "_id.month": -1}
+        }
+    ]
+    
+    analytics = await applications_collection.aggregate(pipeline).to_list(length=100)
+    
+    return {"analytics": analytics}

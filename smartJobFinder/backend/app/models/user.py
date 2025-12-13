@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 from enum import Enum
 from bson import ObjectId
+from sqlalchemy.orm import relationship
 
 class UserRole(str, Enum):
     JOB_SEEKER = "job_seeker"
