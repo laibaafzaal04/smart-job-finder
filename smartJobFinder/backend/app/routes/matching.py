@@ -62,7 +62,7 @@ async def calculate_job_match_score(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    # ✅ SKILL MATCHING ALGORITHM
+    #  SKILL MATCHING ALGORITHM
     user_skills = set(profile.get("skills", []))
     job_skills = set(job.get("skills", []))
     
@@ -80,7 +80,7 @@ async def calculate_job_match_score(
     matched_skills = user_skills.intersection(job_skills)
     skill_match_percentage = (len(matched_skills) / len(job_skills)) * 100 if job_skills else 0
     
-    # ✅ EXPERIENCE LEVEL MATCH
+    #  EXPERIENCE LEVEL MATCH
     experience_match = 0
     user_exp = profile.get("experience", "").lower()
     job_exp = str(job.get("experience_level", "")).lower()
@@ -88,7 +88,7 @@ async def calculate_job_match_score(
     if user_exp and job_exp and user_exp == job_exp:
         experience_match = 20
     
-    # ✅ LOCATION MATCH
+    #  LOCATION MATCH
     location_match = 0
     user_location = profile.get("location", "").lower()
     job_location = job.get("location", "").lower()

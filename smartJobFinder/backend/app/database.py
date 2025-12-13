@@ -15,7 +15,7 @@ class Database:
         try:
             self.client = AsyncIOMotorClient(settings.MONGODB_URL)
             self.db = self.client[settings.DATABASE_NAME]
-            logger.info("✅ Connected to MongoDB")
+            logger.info(" Connected to MongoDB")
 
             # ==========================================
             # CREATE ALL INDEXES FOR PERFORMANCE
@@ -23,7 +23,7 @@ class Database:
             
             # 1. USERS COLLECTION
             await self.db.users.create_index("email", unique=True)
-            logger.info("✅ Created index: users.email")
+            logger.info(" Created index: users.email")
             
             # 2. JOBS COLLECTION - Multiple indexes for complex queries
             await self.db.jobs.create_index([("status", 1), ("posted_date", -1)])
@@ -37,34 +37,34 @@ class Database:
                 ("description", "text"),
                 ("company", "text")
             ], name="job_text_search")
-            logger.info("✅ Created indexes: jobs collection (5 indexes)")
+            logger.info(" Created indexes: jobs collection (5 indexes)")
             
             # 3. APPLICATIONS COLLECTION
             await self.db.applications.create_index([("user_id", 1), ("applied_at", -1)])
             await self.db.applications.create_index([("job_id", 1), ("status", 1)])
             await self.db.applications.create_index([("user_id", 1), ("job_id", 1)], unique=True)
-            logger.info("✅ Created indexes: applications collection (3 indexes)")
+            logger.info(" Created indexes: applications collection (3 indexes)")
             
             # 4. SAVED JOBS COLLECTION
             await self.db.saved_jobs.create_index([("user_id", 1), ("saved_at", -1)])
             await self.db.saved_jobs.create_index([("user_id", 1), ("job_id", 1)], unique=True)
-            logger.info("✅ Created indexes: saved_jobs collection (2 indexes)")
+            logger.info(" Created indexes: saved_jobs collection (2 indexes)")
             
             # 5. PROFILES COLLECTION
             await self.db.profiles.create_index("user_id", unique=True)
-            logger.info("✅ Created indexes: profiles collection")
+            logger.info(" Created indexes: profiles collection")
             
-            logger.info("✅ All indexes created successfully!")
+            logger.info(" All indexes created successfully!")
 
         except Exception as e:
-            logger.error(f"❌ Failed to connect to MongoDB: {e}")
+            logger.error(f" Failed to connect to MongoDB: {e}")
             raise
 
     async def close_database_connection(self):
         """Close the MongoDB connection."""
         if self.client is not None:
             self.client.close()
-            logger.info("✅ Closed MongoDB connection")
+            logger.info(" Closed MongoDB connection")
 
     def get_collection(self, collection_name: str):
         """Return a MongoDB collection safely."""

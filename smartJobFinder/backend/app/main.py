@@ -60,12 +60,12 @@ app.include_router(matching.router)
 @app.on_event("startup")
 async def startup_db_client():
     await db.connect_to_database()
-    logger.info("✅ Database connected")
+    logger.info(" Database connected")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
     await db.close_database_connection()
-    logger.info("✅ Database connection closed")
+    logger.info(" Database connection closed")
 
 @app.get("/")
 async def root():

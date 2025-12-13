@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/user", tags=["user"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
-# ✅ HELPER FUNCTION FOR JOB FORMATTING
+#  HELPER FUNCTION FOR JOB FORMATTING
 def job_helper_with_id(job) -> dict:
     """Format job with both _id and id for frontend compatibility"""
     job_id = str(job["_id"])
@@ -43,7 +43,7 @@ def job_helper_with_id(job) -> dict:
     }
 
 
-# ✅ 1. JOB RECOMMENDATIONS
+#  1. JOB RECOMMENDATIONS
 @router.get("/recommended-jobs")
 async def get_recommended_jobs(
     token: str = Depends(oauth2_scheme),
@@ -86,7 +86,7 @@ async def get_recommended_jobs(
     return [job_helper_with_id(job) for job in jobs]
 
 
-# ✅ 2. ADVANCED JOB SEARCH (Main search endpoint for frontend)
+# 2. ADVANCED JOB SEARCH (Main search endpoint for frontend)
 @router.get("/search-jobs")
 async def advanced_job_search(
     search: Optional[str] = None,
@@ -138,7 +138,7 @@ async def advanced_job_search(
     }
 
 
-# ✅ 3. APPLICATION STATUS CHECK
+#  3. APPLICATION STATUS CHECK
 @router.get("/application-status/{job_id}")
 async def check_application_status(
     job_id: str,
@@ -174,7 +174,7 @@ async def check_application_status(
     return {"has_applied": False}
 
 
-# ✅ 4. USER ACTIVITY TIMELINE
+#  4. USER ACTIVITY TIMELINE
 @router.get("/activity-timeline")
 async def get_user_activity(
     token: str = Depends(oauth2_scheme),
@@ -234,7 +234,7 @@ async def get_user_activity(
     return {"activities": activities[:limit]}
 
 
-# ✅ 5. SIMILAR JOBS
+#  5. SIMILAR JOBS
 @router.get("/similar-jobs/{job_id}")
 async def get_similar_jobs(
     job_id: str,
@@ -271,7 +271,7 @@ async def get_similar_jobs(
         return []
 
 
-# ✅ 6. PROFILE COMPLETION STATUS (Detailed)
+#  6. PROFILE COMPLETION STATUS (Detailed)
 @router.get("/profile-completion-status")
 async def get_profile_completion_status(token: str = Depends(oauth2_scheme)):
     """Get detailed profile completion status"""
@@ -319,7 +319,7 @@ async def get_profile_completion_status(token: str = Depends(oauth2_scheme)):
     }
 
 
-# ✅ 7. EXPORT USER DATA (GDPR)
+#  7. EXPORT USER DATA (GDPR)
 @router.get("/export-data")
 async def export_user_data(token: str = Depends(oauth2_scheme)):
     """Export all user data (GDPR compliance)"""
@@ -372,7 +372,7 @@ async def export_user_data(token: str = Depends(oauth2_scheme)):
     }
 
 
-# ✅ 8. NOTIFICATION PREFERENCES
+#  8. NOTIFICATION PREFERENCES
 @router.post("/notification-preferences")
 async def update_notification_preferences(
     email_notifications: bool,
@@ -415,53 +415,7 @@ async def update_notification_preferences(
     }
 
 
-# ✅ 9. JOB ALERT SUBSCRIPTIONS
-@router.post("/job-alerts")
-async def create_job_alert(
-    keywords: List[str],
-    location: Optional[str] = None,
-    job_type: Optional[str] = None,
-    frequency: str = "daily",
-    token: str = Depends(oauth2_scheme)
-):
-    """Create a job alert subscription"""
-    payload = decode_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    user_email = payload.get("sub")
-    users_collection = get_collection(USERS_COLLECTION)
-    
-    user = await users_collection.find_one({"email": user_email})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Create job alert
-    job_alert = {
-        "user_id": str(user["_id"]),
-        "keywords": keywords,
-        "location": location,
-        "job_type": job_type,
-        "frequency": frequency,
-        "active": True,
-        "created_at": datetime.utcnow(),
-        "last_sent": None
-    }
-    
-    # Store in user document
-    await users_collection.update_one(
-        {"_id": user["_id"]},
-        {"$push": {"job_alerts": job_alert}}
-    )
-    
-    return {
-        "success": True,
-        "message": "Job alert created successfully",
-        "alert": job_alert
-    }
-
-
-# ✅ 10. BULK SAVE JOBS (Was missing from my previous version)
+#  10. BULK SAVE JOBS (Was missing from my previous version)
 @router.post("/bulk-save-jobs")
 async def bulk_save_jobs(
     job_ids: List[str],
@@ -549,7 +503,7 @@ async def get_recommended_jobs_advanced(
     
     user_skills = profile.get("skills", [])
     
-    # ✅ AGGREGATION PIPELINE with skill matching
+    # AGGREGATION PIPELINE with skill matching
     pipeline = [
         # Match active jobs
         {"$match": {"status": "active"}},
