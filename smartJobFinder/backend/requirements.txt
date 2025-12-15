@@ -36,3 +36,5 @@ httpx==0.28.1
 # CORS (already included with fastapi but for clarity)
 starlette==0.41.3
 email-validator==2.1.0.post1
+
+grok=0.6.22

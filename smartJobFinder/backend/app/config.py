@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
-    # MongoDB
+    # MongoDB - Updated for production
     MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
     DATABASE_NAME = os.getenv("DATABASE_NAME", "smartjobfinder")
     
@@ -23,18 +23,24 @@ class Settings:
     EMAIL_SERVER = os.getenv("EMAIL_SERVER", "smtp.gmail.com")
     EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
     
-    # Frontend URL
-    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    # Frontend URL - UPDATED for correct path structure
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5500/smartJobFinder/frontend")
     
-    # File Upload
-    UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./uploads")
+    # File Upload (disable for Render free tier - ephemeral filesystem)
+    UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
     MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE", 5 * 1024 * 1024))  # 5MB
     ALLOWED_EXTENSIONS = {"pdf", "doc", "docx"}
     
-    # CORS
+    # CORS - MUST include your frontend domain
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5500").split(",")
     
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", 60))
+    
+    # Environment
+    ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+    
+    # Groq API
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 
 settings = Settings()

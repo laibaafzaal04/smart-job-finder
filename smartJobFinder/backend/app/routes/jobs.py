@@ -18,7 +18,7 @@ def job_helper(job) -> dict:
     job_id = str(job["_id"])
     return {
         "_id": job_id,
-        "id": job_id,  # ✅ ADD THIS - Frontend expects 'id' field
+        "id": job_id,  #  ADD THIS - Frontend expects 'id' field
         "title": job["title"],
         "company": job["company"],
         "location": job["location"],
@@ -36,7 +36,6 @@ def job_helper(job) -> dict:
         "posted_by_name": job.get("posted_by_name", ""),
         "posted_date": job["posted_date"],
         "applications_count": job.get("applications_count", 0),
-        # Frontend compatibility fields
         "experience": job.get("experience_level"),
         "postedDate": job["posted_date"].isoformat() if job.get("posted_date") else None
     }
@@ -116,7 +115,7 @@ async def get_jobs(
     
     query = {"status": JobStatus.ACTIVE}
     
-    # ✅ USE TEXT SEARCH instead of regex
+    #  USE TEXT SEARCH instead of regex
     if search:
         query["$text"] = {"$search": search}
     
@@ -133,7 +132,7 @@ async def get_jobs(
         skill_list = [s.strip() for s in skills.split(",")]
         query["skills"] = {"$in": skill_list}
     
-    # ✅ SORT by text score when searching
+    #  SORT by text score when searching
     sort_criteria = [("posted_date", -1)]
     if search:
         sort_criteria.insert(0, ("score", {"$meta": "textScore"}))

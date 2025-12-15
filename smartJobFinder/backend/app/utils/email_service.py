@@ -25,6 +25,8 @@ class EmailService:
         self.sender_email = settings.EMAIL_HOST_USER
         self.sender_password = settings.EMAIL_HOST_PASSWORD
         self.sender_name = "Smart Job Finder"
+        # FIXED: Use environment variable for frontend URL with correct path
+        self.frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5500/smartJobFinder/frontend')
     
     def _create_connection(self):
         """Create SMTP connection"""
@@ -99,8 +101,12 @@ class EmailService:
     def send_password_reset_email(self, to_email: str, reset_token: str, user_name: str) -> bool:
         """Send password reset email"""
         
-        # Create reset link (adjust domain in production)
-        reset_link = f"http://localhost:5500/reset-password.html?token={reset_token}"
+        # FIXED: Use the frontend URL from settings (already includes /smartJobFinder/frontend path)
+        reset_link = f"{self.frontend_url}/reset-password.html?token={reset_token}"
+        
+        # Log the reset link for debugging - THIS SHOULD SHOW THE CORRECT PATH
+        logger.info(f"Password reset link generated: {reset_link}")
+        print(f"🔗 DEBUG - Reset link: {reset_link}")  # Extra debug output
         
         subject = "Reset Your Password - Smart Job Finder"
         

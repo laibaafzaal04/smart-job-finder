@@ -259,6 +259,54 @@ async def reset_password(request: ResetPasswordRequest):
     
     return {"message": "Password reset successfully"}
 
+
+# Add this endpoint to your app/routes/auth.py file
+# Place it AFTER the reset_password function and BEFORE the get_current_user function
+
+@router.post("/verify-reset-token")
+async def verify_reset_token(request: dict):
+    """Verify if a reset token is valid (doesn't reset password, just checks token)"""
+    token = request.get("token")
+    
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token is required"
+        )
+    
+    # Decode token to check if it's valid
+    payload = decode_token(token)
+    
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired token"
+        )
+    
+    email = payload.get("sub")
+    
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid token format"
+        )
+    
+    # Optionally verify user exists
+    users_collection = get_collection(USERS_COLLECTION)
+    user = await users_collection.find_one({"email": email})
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    return {
+        "valid": True,
+        "message": "Token is valid",
+        "email": email
+    }
+
 @router.get("/me", response_model=UserResponse)
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     """Get current user info from token"""
